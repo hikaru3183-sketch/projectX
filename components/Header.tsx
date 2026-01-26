@@ -29,20 +29,33 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ★ Tailwind の dark モード切り替え
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle("dark");
+    playClickSound();
+  };
+
   return (
     <header
-      className={`fixed top-0 left-0 w-full p-4 bg-black/70 text-white flex items-center backdrop-blur transition-opacity duration-300 ${
+      className={`fixed top-0 left-0 w-full p-4 bg-black/70 text-white flex justify-between items-center backdrop-blur transition-opacity duration-300 ${
         show ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      <button
-        onClick={playClickSound}
+      {/* ← 戻る */}
+      <Link
+        href="/"
         className="flex items-center gap-2 hover:opacity-70 transition"
       >
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">←</span>
-          <span className="text-lg font-bold">戻る</span>
-        </Link>
+        <span className="text-lg">←</span>
+        <span className="text-lg font-bold">ホーム</span>
+      </Link>
+
+      {/* ★ テーマ変更ボタン */}
+      <button
+        onClick={toggleTheme}
+        className="px-4 py-2 bg-gray-500 text-white rounded shadow active:translate-y-1 transition"
+      >
+        テーマ変更
       </button>
     </header>
   );

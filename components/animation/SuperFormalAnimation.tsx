@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 
-const SuperFormalAnimation = () => {
+export const SuperFormalAnimation = () => {
   const particles = Array.from({ length: 20 });
 
   return (
@@ -64,5 +64,3 @@ const SuperFormalAnimation = () => {
     </div>
   );
 };
-
-export default SuperFormalAnimation;
