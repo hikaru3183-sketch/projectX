@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <>
       <main className="min-h-screen flex items-center justify-center bg-gray-100 p-8">
-        <div className="w-full max-w-5xl space-y-12 p-10 border-4 border-green-300 rounded-2xl shadow-2xl bg-white">
+        <div className="w-full max-w-none space-y-12 p-6 sm:p-10 border-4 border-green-300 rounded-2xl shadow-2xl bg-white">
           {/* ホーム画面タイトル */}
           <h1 className="text-5xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-2 border-green-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
             ホーム画面
@@ -25,10 +25,10 @@ export default function Home() {
 
           {/* ゲーム選択セクション */}
           <SectionBox>
-            <h1 className="text-5xl font-extrabold text-center mb-6">
+            <h1 className="text-3xl font-extrabold text-center mb-6">
               ゲーム選択
-              <hr className="border-t-2 border-gray-800 w-1/2 mx-auto mt-0.5" />{" "}
-              <hr className="border-t-2 border-gray-800 w-1/2 mx-auto mt-0.5" />
+              <hr className="border-t-2 border-gray-800  mx-auto mt-0.5" />{" "}
+              <hr className="border-t-2 border-gray-800  mx-auto mt-0.5" />
             </h1>
             <div className="space-y-6">
               <Button

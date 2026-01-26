@@ -300,18 +300,18 @@ export default function Home() {
         </AnimatePresence>
 
         <div className=" p-6 space-y-15">
-          <h1 className="mt-0 mb-8 w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-6 py-6 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
+          <h1 className="mt-10 mb-8 w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-6 py-6 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
             クリックゲーム
           </h1>
 
           {/* クリックボタン + コインエフェクト */}
-          <div className="relative flex justify-center w-full !mb-10">
+          <div className="relative flex justify-center w-full ">
             {/* コインエフェクト */}
             <CoinEffect coinEffect={coinEffect} />
 
             {/* クリックボタン */}
             <Button
-              className="text-5xl px-24 py-16 font-extrabold tracking-wide bg-linear-to-r from-pink-500 to-yellow-500 text-white shadow-2xl hover:scale-110 transition rounded-3xl leading-none mx-auto "
+              className="mt-4 text-3xl px-24 py-16 font-extrabold tracking-wide bg-linear-to-r from-pink-500 to-yellow-500 text-white shadow-2xl hover:scale-110 transition rounded-3xl leading-none mx-auto "
               onClick={withClickSound(handleClick)}
             >
               クリック
@@ -371,18 +371,23 @@ export default function Home() {
           )}
 
           <div className="text-center mb-4">
-            <div className="inline-flex flex-col items-center gap-1 px-6 py-3 bg-purple-100 border border-purple-300 rounded-xl shadow text-purple-800 text-[10px] font-bold max-w-xs sm:max-w-sm">
-              {/* 上：ガチャ料金 */}
-              <div>
-                🎡ガチャ：
-                <span className="text-[10px]">
+            <div className="inline-flex flex-col items-center gap-2 px-6 py-4 bg-purple-100 border border-purple-300 rounded-xl shadow text-purple-800 text-[10px] font-bold max-w-xs sm:max-w-sm">
+              {/* 🎡 ガチャ料金タイトル */}
+              <div className="flex flex-col items-center w-full">
+                <span className="text-[11px]">🎡 ガチャ料金</span>
+                <div className="w-20 h-[1px] bg-purple-500 my-1" />
+                <span className="text-[10px] font-semibold">
                   1回 500枚 / 10回 5000枚 / 100回 50000枚
                 </span>
               </div>
 
-              {/* 下：排出アイテム */}
-              <div className="font-semibold text-purple-700">
-                📦アイテム：💡ノーマル/✨レア/🎇ウルトラレア/🎆レジェンド
+              {/* 📦 排出アイテムタイトル */}
+              <div className="flex flex-col items-center w-full text-purple-700">
+                <span className="text-[11px] font-bold">📦 排出アイテム</span>
+                <div className="w-20 h-[1px] bg-purple-500 my-1" />
+                <span className="text-[10px] font-semibold">
+                  💡ノーマル / ✨レア / 🎇ウルトラレア / 🎆レジェンド
+                </span>
               </div>
             </div>
           </div>
@@ -418,15 +423,16 @@ export default function Home() {
                 size="sm"
                 onClick={withClickSound(handleClear)}
                 className={`
-      col-span-3
-      py-5 px-8
-      text-white font-extrabold shadow-xl hover:scale-110 transition
-      ${
-        safeCoins >= 100000
-          ? "bg-[linear-gradient(90deg,red,#ff7f00,yellow,#00ff00,#00ffff,#0000ff,#8b00ff)]"
-          : "bg-gray-600"
-      }
-    `}
+    col-span-3
+    py-10 px-10
+    text-white text-xl font-extrabold
+    shadow-xl hover:scale-110 transition
+    ${
+      safeCoins >= 100000
+        ? "bg-[linear-gradient(90deg,red,#ff7f00,yellow,#00ff00,#00ffff,#0000ff,#8b00ff)]"
+        : "bg-gray-600"
+    }
+  `}
                 style={{
                   opacity: Math.min(safeCoins / 100000, 1),
                 }}
