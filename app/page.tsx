@@ -95,8 +95,7 @@ export default function Home() {
             </p>
             <p className="text-gray-700 leading-relaxed text-left">
               また、Framer Motion や Tailwind CSS
-              などの外部ライブラリを積極的に活用し、
-              「必要な機能を適切なツールで実装する」という意識も大切にしました。
+              などの外部ライブラリを積極的に活用し、「必要な機能を適切なツールで実装する」という意識も大切にしました。
               ライブラリの特性を理解しながら組み合わせることで、表現力と開発効率の両方を高めることを意識しています。
             </p>
           </SectionBox>

@@ -10,12 +10,6 @@ import Header from "@/components/Header";
 import { CoinEffect, CoinEffectType } from "@/components/animation/CoinEffect";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
-const SectionBox = ({ children }: { children: React.ReactNode }) => (
-  <section className="w-full max-w-sm mx-auto pt-0 px-4 pb-2 border-2 border-blue-200 rounded-xl space-y-1">
-    {children}
-  </section>
-);
-
 export default function Home() {
   const router = useRouter();
 
@@ -149,7 +143,7 @@ export default function Home() {
     setMessage(msg); // 最初の1文字を即表示！
 
     const step = (now: number) => {
-      if (now - t >= 70 && i < text.length) {
+      if (now - t >= 50 && i < text.length) {
         msg += text[i++];
         setMessage(msg);
         t = now;
@@ -157,7 +151,7 @@ export default function Home() {
 
       i < text.length
         ? (animationRef.current = requestAnimationFrame(step))
-        : (timeoutRef.current = setTimeout(() => setVisible(false), 3000));
+        : (timeoutRef.current = setTimeout(() => setVisible(false), 1500));
     };
 
     animationRef.current = requestAnimationFrame(step);
@@ -291,7 +285,6 @@ export default function Home() {
   // ゲームクリア
   // -----------------------------
   const handleClear = () => {
-    showMessage("ゲームクリア！！");
     setShowSuperFormal(true);
 
     // ★ アニメーション終了後に実行
@@ -314,149 +307,148 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden text-gray-800">
-      <SectionBox>
-        <div className=" bg-neutral-900 text-white">
-          <Header />
-        </div>
+    <main className="mt-4 w-full max-w-none  p-6 sm:p-10 border-4 border-blue-300 rounded-2xl shadow-2xl">
+      <div className=" bg-neutral-900 text-white">
+        <Header />
+      </div>
 
-        <AnimatePresence mode="wait">
-          {/* ゲームクリア演出 */}
-          {showSuperFormal && <ClearAnimation key="super-formal" />}
-        </AnimatePresence>
+      <AnimatePresence mode="wait">
+        {/* ゲームクリア演出 */}
+        {showSuperFormal && <ClearAnimation key="super-formal" />}
+      </AnimatePresence>
 
-        <div className="p-6 space-y-15">
-          <h1 className="mt-10 mb-14 w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
-            クリックゲーム
-          </h1>
+      <div className="">
+        <h1 className=" w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
+          クリックゲーム
+        </h1>
 
-          {/* クリックボタン + コインエフェクト */}
-          <div className="relative text-center ">
-            <button
-              onClick={handleClick}
-              className="
-  px-20 py-10 bg-yellow-500 text-white text-3xl rounded-xl
+        {/* クリックボタン + コインエフェクト */}
+        <div className="relative text-center ">
+          <button
+            onClick={handleClick}
+            className="
+  mt-8 px-20 py-10 bg-yellow-500 text-white text-3xl rounded-xl
   shadow-[4px_4px_0_#d97706]
   hover:translate-y-1 hover:shadow-[2px_2px_0_#d97706]
   active:translate-y-2 active:shadow-[0px_0px_0_#d97706]
-  transition
+  transition mb-10
 "
-            >
-              クリック
-            </button>
+          >
+            クリック
+          </button>
 
-            {/* ボタンの外に CoinEffect を置く */}
-            <CoinEffect
-              coinEffect={coinEffect}
-              onFinish={() => setCoinEffect(null)}
-            />
-          </div>
+          {/* ボタンの外に CoinEffect を置く */}
+          <CoinEffect
+            coinEffect={coinEffect}
+            onFinish={() => setCoinEffect(null)}
+          />
+        </div>
 
-          <div className="text-center mb-4">
-            <p className="inline-flex items-center gap-2 px-6 py-4 bg-yellow-100 border border-yellow-300 rounded-full shadow text-yellow-800 text-xl font-bold ">
-              ⚜コイン:<span>{coins}</span>枚
-            </p>
-          </div>
+        <div className="text-center mb-4">
+          <p className="inline-flex items-center gap-2 px-6 py-4 mb-4 bg-yellow-100 border border-yellow-300 rounded-full shadow text-yellow-800 text-xl font-bold ">
+            ⚜コイン:<span>{coins}</span>枚
+          </p>
+        </div>
 
-          {Object.keys(stockItems).length > 0 && (
-            <div className="mb-4 border p-3 rounded bg-white/70 backdrop-blur max-w-sm mx-auto shadow space-y-4 text-gray-800">
-              <div className="text-center mb-2">
-                <div className="inline-block">
-                  <p className="font-bold text-sm inline-block">
-                    🎒 所持アイテム
-                  </p>
-                  <div className="h-[1px] bg-gray-500/50 mt-1" />
-                </div>
+        {Object.keys(stockItems).length > 0 && (
+          <div className="mb-4 border p-3 rounded bg-white/70 backdrop-blur max-w-sm mx-auto shadow space-y-4 text-gray-800">
+            <div className="text-center mb-2">
+              <div className="inline-block">
+                <p className="font-bold text-sm inline-block">
+                  🎒 所持アイテム
+                </p>
+                <div className="h-[1px] bg-gray-500/50 mt-1" />
               </div>
-              {/* 横並びグリッド */}
-              <div className="grid grid-cols-2 gap-2">
-                {sortedItems.map(([name, count]) => (
-                  <div
-                    key={name}
-                    className="flex flex-col items-center p-1 bg-white rounded shadow-sm"
-                  >
-                    {/* アイテム名 */}
-                    <span className="text-xs mb-1">
-                      {name} ×{count}
-                    </span>
-
-                    {/* 使用ボタン */}
-                    <button
-                      onClick={withClickSound(() => handleUseItem(name))}
-                      className="bg-indigo-500 text-white text-[10px] px-2 py-0.5 hover:scale-105 transition rounded"
-                    >
-                      使用
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {/* 全使用ボタン（中央） */}
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={withClickSound(useAllItemsAllTypes)}
-                  className="w-28 h-9 bg-red-600 text-white font-bold hover:scale-105 transition text-xs rounded"
+            </div>
+            {/* 横並びグリッド */}
+            <div className="grid grid-cols-2 gap-2">
+              {sortedItems.map(([name, count]) => (
+                <div
+                  key={name}
+                  className="flex flex-col items-center p-1 bg-white rounded shadow-sm"
                 >
-                  全使用
-                </button>
-              </div>
+                  {/* アイテム名 */}
+                  <span className="text-xs mb-1">
+                    {name} ×{count}
+                  </span>
+
+                  {/* 使用ボタン */}
+                  <button
+                    onClick={withClickSound(() => handleUseItem(name))}
+                    className="bg-indigo-500 text-white text-[10px] px-2 py-0.5 hover:scale-105 transition rounded"
+                  >
+                    使用
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
-
-          <div className="text-center mb-4">
-            <div className="inline-flex flex-col items-center gap-2 px-6 py-4 bg-purple-100 border border-purple-300 rounded-xl shadow text-purple-800 text-[10px] font-bold max-w-xs sm:max-w-sm">
-              {/* 🎡 ガチャ料金タイトル */}
-              <div className="flex flex-col items-center w-full">
-                <span className="text-[11px]">🎡 ガチャ料金</span>
-                <div className="w-20 h-[1px] bg-purple-500 my-1" />
-                <span className="text-[10px] font-semibold">
-                  1回 500枚 / 10回 5000枚 / 100回 50000枚
-                </span>
-              </div>
-
-              {/* 📦 排出アイテムタイトル */}
-              <div className="flex flex-col items-center w-full">
-                <span className="text-[11px] font-bold">📦 排出アイテム</span>
-                <div className="w-20 h-[1px] bg-purple-500 my-1" />
-                <span className="text-[10px] font-semibold">
-                  💡ノーマル / ✨レア / 🎇ウルトラレア / 🎆レジェンド
-                </span>
-              </div>
+            {/* 全使用ボタン（中央） */}
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={withClickSound(useAllItemsAllTypes)}
+                className="w-28 h-9 bg-red-600 text-white font-bold hover:scale-105 transition text-xs rounded"
+              >
+                全使用
+              </button>
             </div>
           </div>
+        )}
 
-          {/* ガチャボタン配置 */}
-          <div className="text-[10px] px-6 grid grid-cols-3 gap-2 max-w-md mx-auto !mb-4">
-            <GachaButton
-              soundSrc="/sounds/click/g1.mp3"
-              cost={500 * 1}
-              count={1}
-              currentCoins={currentCoins}
-              handleGacha={handleGacha}
-            />
+        <div className="text-center mb-4">
+          <div className="inline-flex flex-col items-center gap-2 px-6 py-4 bg-purple-100 border border-purple-300 rounded-xl shadow text-purple-800 text-[10px] font-bold w-full max-w-sm">
+            {/* 🎡 ガチャ料金タイトル */}
+            <div className="flex flex-col items-center w-full">
+              <span className="text-[11px]">🎡 ガチャ料金</span>
+              <div className="w-20 h-[1px] bg-purple-500 my-1" />
+              <span className="text-[10px] font-semibold">
+                1回 500枚 / 10回 5000枚 / 100回 50000枚
+              </span>
+            </div>
 
-            <GachaButton
-              soundSrc="/sounds/click/g2.mp3"
-              cost={500 * 10}
-              count={10}
-              currentCoins={currentCoins}
-              handleGacha={handleGacha}
-            />
+            {/* 📦 排出アイテムタイトル */}
+            <div className="flex flex-col items-center w-full">
+              <span className="text-[11px] font-bold">📦 排出アイテム</span>
+              <div className="w-20 h-[1px] bg-purple-500 my-1" />
+              <span className="text-[10px] font-semibold">
+                💡ノーマル / ✨レア / 🎇ウルトラレア / 🎆レジェンド
+              </span>
+            </div>
+          </div>
+        </div>
 
-            <GachaButton
-              soundSrc="/sounds/click/g3.mp3"
-              cost={500 * 100}
-              count={100}
-              currentCoins={currentCoins}
-              handleGacha={handleGacha}
-            />
+        {/* ガチャボタン配置 */}
+        <div className="text-[10px] px-6 grid grid-cols-3 gap-2 max-w-md mx-auto !mb-4">
+          <GachaButton
+            soundSrc="/sounds/click/g1.mp3"
+            cost={500 * 1}
+            count={1}
+            currentCoins={currentCoins}
+            handleGacha={handleGacha}
+          />
 
-            {safeCoins >= 0 && (
-              <button
-                onClick={() => {
-                  new Audio("/sounds/clear.mp3").play();
-                  handleClear(); // ← これがちゃんと動くようになる
-                }}
-                className={`
+          <GachaButton
+            soundSrc="/sounds/click/g2.mp3"
+            cost={500 * 10}
+            count={10}
+            currentCoins={currentCoins}
+            handleGacha={handleGacha}
+          />
+
+          <GachaButton
+            soundSrc="/sounds/click/g3.mp3"
+            cost={500 * 100}
+            count={100}
+            currentCoins={currentCoins}
+            handleGacha={handleGacha}
+          />
+
+          {safeCoins >= 0 && (
+            <button
+              onClick={() => {
+                new Audio("/sounds/clear.mp3").play();
+                handleClear(); // ← これがちゃんと動くようになる
+              }}
+              className={`
       col-span-3
       py-10 px-10
       text-white text-xl font-extrabold
@@ -467,36 +459,38 @@ export default function Home() {
           : "bg-gray-600"
       }
     `}
-                style={{
-                  opacity: Math.min(safeCoins / 100000, 1),
-                }}
-                disabled={safeCoins < 100000}
-              >
-                CLEAR
-              </button>
-            )}
-          </div>
-          <div className="text-center text-xs text-gray-700 mt-4 drop-shadow">
-            <MessageBox message={message} visible={visible} />
-          </div>
-        </div>
-        {showClearButton && (
-          <div className="fixed inset-0 z-999 flex flex-col items-center justify-center">
-            {/* 背景オーバーレイ */}
-            <div className="absolute inset-0 bg-gray-500/50 backdrop-blur-sm"></div>
-            {/* ホーム画面ボタン */}
-
-            <button
-              onClick={() => {
-                router.back();
+              style={{
+                opacity: Math.min(safeCoins / 100000, 1),
               }}
-              className="relative px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition"
+              disabled={safeCoins < 100000}
             >
-              ホーム画面
+              CLEAR
             </button>
+          )}
+        </div>
+        <div className="text-center text-xs text-gray-700 mt-4 drop-shadow">
+          <MessageBox message={message} visible={visible} />
+        </div>
+      </div>
+      {showClearButton && (
+        <div className="fixed inset-0 z-999 flex flex-col items-center justify-center">
+          {/* 背景オーバーレイ */}
+          <div className="absolute inset-0 bg-gray-500/50 backdrop-blur-sm"></div>
+          {/* 表示したい文字 */}
+          <div className="relative z-10 text-white text-3xl font-bold mb-4">
+            ゲームクリア！
           </div>
-        )}
-      </SectionBox>
+          {/* ホーム画面ボタン */}
+          <button
+            onClick={() => {
+              router.back();
+            }}
+            className="relative px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition"
+          >
+            ホーム画面
+          </button>
+        </div>
+      )}
     </main>
   );
 }
