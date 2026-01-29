@@ -60,7 +60,7 @@ export default function Home() {
   const effectIdRef = useRef(0);
 
   const handleClick = () => {
-    const audio = new Audio("/sounds/coin.mp3");
+    const audio = new Audio("/sounds/click/coin.mp3");
     audio.volume = 0.8;
     audio.play();
     const amount = getRandomAmount();
@@ -318,7 +318,7 @@ export default function Home() {
       </AnimatePresence>
 
       <div className="">
-        <h1 className=" w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
+        <h1 className=" mt-2 w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
           クリックゲーム
         </h1>
 
@@ -466,7 +466,7 @@ export default function Home() {
             </button>
           )}
         </div>
-        <div className="text-center text-xs text-gray-700 mt-4 drop-shadow">
+        <div className="text-center text-xs text-gray-700 mt-4 drop-shadow h-16 overflow-hidden">
           <MessageBox message={message} visible={visible} />
         </div>
       </div>

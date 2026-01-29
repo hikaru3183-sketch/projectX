@@ -46,15 +46,15 @@ export default function Home() {
       md:flex md:space-x-6 md:gap-0
     "
             >
-              <button className="text-1xl px-4 py-6 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/click">クリック</Link>
               </button>
 
-              <button className="text-1xl px-4 py-6 bg-pink-600 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-pink-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/janken">じゃんけん</Link>
               </button>
 
-              <button className="text-1xl px-4 py-6 bg-yellow-600 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-yellow-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/hockey">ホッケー</Link>
               </button>
 
@@ -68,7 +68,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-center">📘 説明書</h2>
             <div className="text-left text-gray-700 space-y-4">
               <div>
-                <h3 className="font-bold text-lg text-blue-600">
+                <h3 className="font-bold text-lg text-blue-300">
                   ▶ クリック ◀
                 </h3>
                 <ul className="list-disc">
@@ -107,12 +107,11 @@ export default function Home() {
 
           {/* このゲーム集を作った理由 */}
           <SectionBox>
-            <h2 className="text-2xl font-bold text-center">🎮 作成した理由</h2>
+            <h2 className="text-2xl font-bold text-center">🎮 制作理由</h2>
             <p className="text-gray-700 leading-relaxed text-left">
               Next.js の構造理解と TSX
               の習得を目的に、「自分が遊んでいて楽しいもの」をテーマに開発しました。
-              UI
-              やアニメーション、音の演出まで細かく作り込むことで、触っていて気持ちよい体験を目指しています。
+              UIやアニメーション、音の演出まで細かく作り込むことで、触っていて気持ちよい体験を目指しています。
             </p>
             <p className="text-gray-700 leading-relaxed text-left">
               また、Framer Motion や Tailwind CSS
