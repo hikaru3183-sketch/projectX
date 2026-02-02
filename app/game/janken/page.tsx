@@ -92,6 +92,12 @@ export default function JankenPage() {
     }
   }, [resultState]);
 
+  useEffect(() => {
+    if (resultState === "lose") {
+      new Audio("/sounds/janken/lose.mp3").play();
+    }
+  }, [resultState]);
+
   const judge = (p: string, c: string) => {
     if (p === c) return "あいこ";
     if (

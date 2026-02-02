@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 
 // 共通の枠スタイルをまとめたコンポーネント
 const SectionBox = ({ children }: { children: React.ReactNode }) => (
@@ -11,7 +13,10 @@ const SectionBox = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function Home() {
-  const [showResetModal, setShowResetModal] = useState(false);
+  const router = useRouter();
+  const user = auth.currentUser;
+  const [modalType, setModalType] = useState<"reset" | "logout" | null>(null);
+  const [logoutSuccess, setLogoutSuccess] = useState(false);
 
   return (
     <>
@@ -27,10 +32,26 @@ export default function Home() {
       >
         <div className="w-full max-w-none space-y-12 p-6 sm:p-10 border-4 border-green-300 rounded-2xl shadow-2xl bg-white">
           {/* ホーム画面タイトル */}
-          <h1 className="text-4xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-2 border-green-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
-            ホーム画面
-          </h1>
 
+          <div className="relative">
+            <h1 className="text-4xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-2 border-green-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
+              ホーム画面
+            </h1>
+          </div>
+          <div className="w-full flex justify-center items-center gap-2">
+            <p className="text-sm font-bold text-green-700 px-1">
+              {user ? `⭕ : ${user.email}` : "❌ : ログインしていません"}
+            </p>
+            {!user && (
+              <button
+                onClick={() => router.push("/login")}
+                className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
+              >
+                {" "}
+                ログイン{" "}
+              </button>
+            )}{" "}
+          </div>
           {/* ゲーム選択セクション */}
           <SectionBox>
             <h1 className="text-3xl font-extrabold text-center mb-6">
@@ -46,7 +67,7 @@ export default function Home() {
       md:flex md:space-x-6 md:gap-0
     "
             >
-              <button className="text-1xl px-4 py-6 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-yellow-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/click">クリック</Link>
               </button>
 
@@ -54,7 +75,7 @@ export default function Home() {
                 <Link href="/game/janken">じゃんけん</Link>
               </button>
 
-              <button className="text-1xl px-4 py-6 bg-yellow-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/hockey">ホッケー</Link>
               </button>
 
@@ -72,7 +93,7 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-center">📘 説明書</h2>
             <div className="text-left text-gray-700 space-y-4">
               <div>
-                <h3 className="font-bold text-lg text-blue-500">
+                <h3 className="font-bold text-lg text-yellow-500">
                   ▶ クリック ◀
                 </h3>
                 <ul className="list-disc">
@@ -90,7 +111,7 @@ export default function Home() {
                   <li>3ステージ勝ち抜くと優勝！</li>
                 </ul>
 
-                <h3 className="font-bold text-lg text-yellow-500">
+                <h3 className="font-bold text-lg text-blue-500">
                   ▶ ホッケー ◀
                 </h3>
                 <ul className="list-disc ">
@@ -131,38 +152,85 @@ export default function Home() {
             </p>
           </SectionBox>
 
-          {/* データ消去ボタン */}
-          <div className="flex justify-center">
-            <button
-              onClick={() => setShowResetModal(true)}
-              className="bg-red-600 text-white font-bold px-4 py-2 rounded-full shadow-md hover:bg-red-700 hover:scale-105 transition"
-            >
-              データ消去
-            </button>
+          <div className="flex justify-between items-center w-full">
+            {/* 左側の空白（中央寄せのために必要） */}
+            <div className="w-1/3"></div>
+
+            {/* データ消去（中央） */}
+            <div className="w-1/3 flex justify-center">
+              <button
+                onClick={() => setModalType("reset")}
+                className="bg-red-500 text-white font-bold px-2 py-2 rounded-full shadow-md hover:bg-red-700 hover:scale-105 transition"
+              >
+                データ消去
+              </button>
+            </div>
+
+            {/* ログアウト（右） */}
+            <div className="w-1/3 flex justify-end">
+              {user && (
+                <button
+                  onClick={() => setModalType("logout")}
+                  className="bg-red-500 text-white font-bold px-2 py-2 rounded-full shadow-md hover:bg-gray-600 hover:scale-105 transition"
+                >
+                  ログアウト
+                </button>
+              )}
+            </div>
           </div>
 
           {/* モーダル */}
-          {showResetModal && (
+          {modalType && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                <p className="text-lg font-bold mb-4">初期化しますかか？</p>
+                {/* タイトル */}
+                <p className="text-lg font-bold mb-4">
+                  {modalType === "reset"
+                    ? "初期化しますか？"
+                    : "ログアウトしますか？"}
+                </p>
+
                 <div className="flex gap-4 justify-center">
+                  {/* 赤い実行ボタン */}
                   <button
-                    onClick={() => {
-                      localStorage.clear();
-                      window.location.reload();
+                    onClick={async () => {
+                      if (modalType === "reset") {
+                        localStorage.clear();
+                        window.location.reload();
+                      } else if (modalType === "logout") {
+                        await auth.signOut();
+                        setModalType(null); // ← 元のモーダルを閉じる
+                        setLogoutSuccess(true); // ← 成功ポップアップを表示
+                        router.refresh();
+                      }
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded font-bold shadow-[0_4px_0_#7f1d1d] active:shadow-none active:translate-y-1 transition"
+                    className="px-4 py-2 bg-red-500 text-white rounded font-bold shadow-[0_4px_0_#7f1d1d] active:shadow-none active:translate-y-1 transition"
                   >
-                    消去する
+                    {modalType === "reset" ? "消去する" : "ログアウト"}
                   </button>
+
+                  {/* キャンセル */}
                   <button
-                    onClick={() => setShowResetModal(false)}
+                    onClick={() => setModalType(null)}
                     className="px-4 py-2 bg-gray-300 rounded font-bold shadow-[0_4px_0_#4b5563] active:shadow-none active:translate-y-1 transition"
                   >
                     キャンセル
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+          {logoutSuccess && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+              <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                <p className="text-lg font-bold mb-4">ログアウトしました</p>
+
+                <button
+                  onClick={() => setLogoutSuccess(false)}
+                  className="px-4 py-2 bg-green-500 text-white rounded font-bold shadow-[0_4px_0_#166534] active:shadow-none active:translate-y-1 transition"
+                >
+                  OK
+                </button>
               </div>
             </div>
           )}
