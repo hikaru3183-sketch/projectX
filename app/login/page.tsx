@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -12,35 +10,32 @@ export default function Login() {
   const [popup, setPopup] = useState<"success" | "error" | null>(null);
   const router = useRouter();
 
-  // ★ Firestore にユーザーデータを作成
-  const createUserDocIfNotExists = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        email: user.email,
-        coins: 30000, // 初期値
-        updatedAt: Date.now(),
-      },
-      { merge: true },
-    );
-  };
-
   const login = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // 🔵 Supabase の users テーブルから照合
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password)
+        .single();
 
-      // ★ Firestore にユーザーデータ作成
-      await createUserDocIfNotExists();
+      if (error || !data) {
+        setPopup("error");
+        return;
+      }
+
+      // 🔵 ログイン成功 → localStorage に保存
+      localStorage.setItem("user", JSON.stringify(data));
 
       setPopup("success");
+
+      // 🔵 ホームへ遷移
       setTimeout(() => {
         router.push("/");
       }, 1200);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setPopup("error");
     }
   };
@@ -48,10 +43,10 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 relative">
       <ul className="text-sm font-bold text-gray-600 mb-2 space-y-1 text-center">
-        <li>h@projectx.com / password1</li>
-        <li>n@projectx.com / password2</li>
-        <li>t@projectx.com / password3</li>
-        <li>k@projectx.com / password4</li>
+        <li>h@px.com / ps1</li>
+        <li>n@px.com / ps2</li>
+        <li>t@px.com / ps3</li>
+        <li>k@px.com / ps4</li>
       </ul>
 
       <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-green-200">

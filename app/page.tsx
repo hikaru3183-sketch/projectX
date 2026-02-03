@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
 
 // 共通の枠スタイルをまとめたコンポーネント
 const SectionBox = ({ children }: { children: React.ReactNode }) => (
@@ -14,7 +13,17 @@ const SectionBox = ({ children }: { children: React.ReactNode }) => (
 
 export default function Home() {
   const router = useRouter();
-  const user = auth.currentUser;
+
+  // 🔵 Supabase 自前ログイン方式（localStorage）
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+  }, []);
+
   const [modalType, setModalType] = useState<"reset" | "logout" | null>(null);
   const [logoutSuccess, setLogoutSuccess] = useState(false);
 
@@ -22,37 +31,38 @@ export default function Home() {
     <>
       <main
         className="
-    min-h-screen
-    w-screen
-    flex items-center justify-center
-    bg-gray-100
-    p-0
-    border-x-4 border-gray-300
-  "
+          min-h-screen
+          w-screen
+          flex items-center justify-center
+          bg-gray-100
+          p-0
+          border-x-4 border-gray-300
+        "
       >
         <div className="w-full max-w-none space-y-12 p-6 sm:p-10 border-4 border-green-300 rounded-2xl shadow-2xl bg-white">
-          {/* ホーム画面タイトル */}
-
           <div className="relative">
             <h1 className="text-4xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-2 border-green-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
               ホーム画面
             </h1>
           </div>
+
+          {/* ログイン状態表示 */}
           <div className="w-full flex justify-center items-center gap-2">
             <p className="text-sm font-bold text-green-700 px-1">
               {user ? `⭕ : ${user.email}` : "❌ : ログインしていません"}
             </p>
+
             {!user && (
               <button
                 onClick={() => router.push("/login")}
                 className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
               >
-                {" "}
-                ログイン{" "}
+                ログイン
               </button>
-            )}{" "}
+            )}
           </div>
-          {/* ゲーム選択セクション */}
+
+          {/* ゲーム選択 */}
           <SectionBox>
             <h1 className="text-3xl font-extrabold text-center mb-6">
               ゲーム選択
@@ -60,13 +70,7 @@ export default function Home() {
               <hr className="border-t-2 border-gray-800 mx-auto mt-0.5" />
             </h1>
 
-            {/* スマホ：2×2 グリッド / PC：横並び */}
-            <div
-              className="
-      grid grid-cols-2 gap-4
-      md:flex md:space-x-6 md:gap-0
-    "
-            >
+            <div className="grid grid-cols-2 gap-4 md:flex md:space-x-6 md:gap-0">
               <button className="text-1xl px-4 py-6 bg-yellow-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/click">クリック</Link>
               </button>
@@ -82,13 +86,10 @@ export default function Home() {
               <button className="text-1xl px-4 py-6 bg-violet-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/escape">逃げる</Link>
               </button>
-
-              {/* 空白 or 追加ゲーム用 */}
-              <div className="hidden md:block"></div>
             </div>
           </SectionBox>
 
-          {/* 各ゲームの遊び方 */}
+          {/* 説明書 */}
           <SectionBox>
             <h2 className="text-2xl font-bold text-center">📘 説明書</h2>
             <div className="text-left text-gray-700 space-y-4">
@@ -137,26 +138,23 @@ export default function Home() {
             </div>
           </SectionBox>
 
-          {/* このゲーム集を作った理由 */}
+          {/* 制作理由 */}
           <SectionBox>
             <h2 className="text-2xl font-bold text-center">🎮 制作理由</h2>
             <p className="text-gray-700 leading-relaxed text-left">
               Next.js の構造理解と TSX
               の習得を目的に、「自分が遊んでいて楽しいもの」をテーマに開発しました。
-              UIやアニメーション、音の演出まで細かく作り込むことで、触っていて気持ちよい体験を目指しています。
             </p>
             <p className="text-gray-700 leading-relaxed text-left">
               また、Framer Motion や Tailwind CSS
-              などの外部ライブラリを積極的に活用し、「必要な機能を適切なツールで実装する」という意識も大切にしました。
-              ライブラリの特性を理解しながら組み合わせることで、表現力と開発効率の両方を高めることを意識しています。
+              などの外部ライブラリを活用し、表現力と開発効率を高めています。
             </p>
           </SectionBox>
 
+          {/* ボタン類 */}
           <div className="flex justify-between items-center w-full">
-            {/* 左側の空白（中央寄せのために必要） */}
             <div className="w-1/3"></div>
 
-            {/* データ消去（中央） */}
             <div className="w-1/3 flex justify-center">
               <button
                 onClick={() => setModalType("reset")}
@@ -166,7 +164,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* ログアウト（右） */}
             <div className="w-1/3 flex justify-end">
               {user && (
                 <button
@@ -183,7 +180,6 @@ export default function Home() {
           {modalType && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                {/* タイトル */}
                 <p className="text-lg font-bold mb-4">
                   {modalType === "reset"
                     ? "初期化しますか？"
@@ -191,17 +187,16 @@ export default function Home() {
                 </p>
 
                 <div className="flex gap-4 justify-center">
-                  {/* 赤い実行ボタン */}
                   <button
-                    onClick={async () => {
+                    onClick={() => {
                       if (modalType === "reset") {
                         localStorage.clear();
                         window.location.reload();
                       } else if (modalType === "logout") {
-                        await auth.signOut();
-                        setModalType(null); // ← 元のモーダルを閉じる
-                        setLogoutSuccess(true); // ← 成功ポップアップを表示
-                        router.refresh();
+                        localStorage.removeItem("user");
+                        setUser(null);
+                        setModalType(null);
+                        setLogoutSuccess(true);
                       }
                     }}
                     className="px-4 py-2 bg-red-500 text-white rounded font-bold shadow-[0_4px_0_#7f1d1d] active:shadow-none active:translate-y-1 transition"
@@ -209,7 +204,6 @@ export default function Home() {
                     {modalType === "reset" ? "消去する" : "ログアウト"}
                   </button>
 
-                  {/* キャンセル */}
                   <button
                     onClick={() => setModalType(null)}
                     className="px-4 py-2 bg-gray-300 rounded font-bold shadow-[0_4px_0_#4b5563] active:shadow-none active:translate-y-1 transition"
@@ -220,6 +214,7 @@ export default function Home() {
               </div>
             </div>
           )}
+
           {logoutSuccess && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg shadow-xl text-center">
@@ -236,6 +231,7 @@ export default function Home() {
           )}
         </div>
       </main>
+
       <footer className="w-full text-center text-sm text-gray-500 py-6">
         © {new Date().getFullYear()} hikaru3183-sketch. Released under the MIT
         License.
