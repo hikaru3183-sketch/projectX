@@ -2,8 +2,7 @@
 
 import "./globals.css";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function RootLayout({
   children,
@@ -11,18 +10,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
 
+  // ホームだけヘッダー非表示
   const isHome = pathname === "/";
-  const isHockey = pathname.startsWith("/game/hockey"); // ← 追加
-  const isEscape = pathname.startsWith("/game/escape");
-
-  const hideHeader = isHome || isHockey || isEscape; // ← ここでまとめる
+  const hideHeader = isHome;
 
   const [showHeader, setShowHeader] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
-    if (hideHeader) return; // ← ホーム & ホッケーではスクロール制御を無効化
+    if (hideHeader) return;
 
     const handleScroll = () => {
       const currentY = window.scrollY;
@@ -43,18 +41,27 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        {/* ホーム & ホッケーではヘッダーを完全に非表示 */}
+        {/* ホーム以外はヘッダー表示 */}
         {!hideHeader && (
           <div
             className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
               showHeader ? "translate-y-0" : "-translate-y-full"
             }`}
           >
-            <Header />
+            {/* ★ 黒背景のヘッダー */}
+            <header className="w-full bg-gray-700 text-white p-4 flex items-center">
+              {/* ★ 左側の戻るボタン */}
+              <button
+                onClick={() => router.push("/")}
+                className="text-lg font-bold hover:opacity-70 transition"
+              >
+                ← ホーム
+              </button>
+            </header>
           </div>
         )}
 
-        {/* ホーム & ホッケーでは余白を消す */}
+        {/* ホーム以外はヘッダー分の余白を追加 */}
         <div className={hideHeader ? "" : "pt-16"}>{children}</div>
       </body>
     </html>

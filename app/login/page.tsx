@@ -14,7 +14,7 @@ export default function Login() {
     try {
       // 🔵 Supabase の users テーブルから照合
       const { data, error } = await supabase
-        .from("users")
+        .from("app_users")
         .select("*")
         .eq("email", email)
         .eq("password", password)

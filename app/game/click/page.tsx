@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClearAnimation } from "@/components/animation/ClearAnimation";
 import GachaButton from "@/components/animation/GachaButton";
-import Header from "@/components/Header";
 import { CoinEffect, CoinEffectType } from "@/components/animation/CoinEffect";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
@@ -307,18 +306,14 @@ export default function Home() {
   };
 
   return (
-    <main className="mt-4 w-full max-w-none  p-6 sm:p-10 border-4 border-blue-300 rounded-2xl shadow-2xl">
-      <div className=" bg-neutral-900 text-white">
-        <Header />
-      </div>
-
+    <main className=" w-full max-w-none p-6 sm:p-10 border-4 border-blue-300 rounded-2xl shadow-2xl">
+      {" "}
       <AnimatePresence mode="wait">
         {/* ゲームクリア演出 */}
         {showSuperFormal && <ClearAnimation key="super-formal" />}
       </AnimatePresence>
-
       <div className="">
-        <h1 className=" mt-2 w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
+        <h1 className="  w-full max-w-md mx-auto text-3xl font-bold text-center text-[#1f1f1f] bg-blue-50 px-2 py-2 rounded-md border-2 border-blue-300 shadow-[2px_2px_0_0_#90caf9] font-['VT323'] tracking-wide">
           クリックゲーム
         </h1>
 

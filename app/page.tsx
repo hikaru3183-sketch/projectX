@@ -53,12 +53,21 @@ export default function Home() {
             </p>
 
             {!user && (
-              <button
-                onClick={() => router.push("/login")}
-                className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
-              >
-                ログイン
-              </button>
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
+                >
+                  ログイン
+                </button>
+
+                <button
+                  onClick={() => router.push("/signup")}
+                  className="px-2 py-0.5 text-xs bg-sky-500 text-white font-bold rounded-md shadow hover:bg-sky-600 transition"
+                >
+                  アカウント作成
+                </button>
+              </>
             )}
           </div>
 
@@ -79,7 +88,7 @@ export default function Home() {
                 <Link href="/game/janken">じゃんけん</Link>
               </button>
 
-              <button className="text-1xl px-4 py-6 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
+              <button className="text-1xl px-4 py-6 bg-indigo-500 text-white font-bold rounded-xl shadow-lg hover:scale-110 hover:shadow-2xl transition transform">
                 <Link href="/game/hockey">ホッケー</Link>
               </button>
 
@@ -112,7 +121,7 @@ export default function Home() {
                   <li>3ステージ勝ち抜くと優勝！</li>
                 </ul>
 
-                <h3 className="font-bold text-lg text-blue-500">
+                <h3 className="font-bold text-lg text-indigo-500">
                   ▶ ホッケー ◀
                 </h3>
                 <ul className="list-disc ">
