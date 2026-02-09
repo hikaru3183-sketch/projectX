@@ -100,9 +100,33 @@ export default function Home() {
     if (saved) {
       setCoins(JSON.parse(saved));
     } else {
-      setCoins(30000); // 初期値
+      setCoins(10000); // 初期値
     }
   }, []);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (!user) return;
+
+    const saveScore = () => {
+      const payload = JSON.stringify({
+        userId: user.id,
+        game: "click", // ← このゲーム名
+        value: coins, // ← score ではなく coins
+      });
+
+      navigator.sendBeacon("/api/scores/save", payload);
+    };
+
+    window.addEventListener("beforeunload", saveScore);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveScore();
+    });
+
+    return () => {
+      window.removeEventListener("beforeunload", saveScore);
+    };
+  }, [coins]);
 
   useEffect(() => {
     if (coins !== null) {
@@ -434,13 +458,13 @@ export default function Home() {
           <div className="fixed inset-0 z-999 flex flex-col items-center justify-center">
             <div className="absolute inset-0 bg-gray-500/50 backdrop-blur-sm"></div>
             <div className="relative z-10 text-white text-3xl font-bold mb-4">
-              ゲームクリア！
+              🎉 クリアおめでとう！ 🎉
             </div>
             <button
-              onClick={() => {
-                router.back();
+              onClick={async () => {
+                router.back(); // ★ ホームへ戻る
               }}
-              className="relative px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition"
+              className="relative px-6 py-3 bg-green-400 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition"
             >
               ホーム画面
             </button>

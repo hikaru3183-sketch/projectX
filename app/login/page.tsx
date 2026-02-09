@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
@@ -16,25 +15,24 @@ export default function Login() {
 
   const login = async () => {
     try {
-      // 🔵 Supabase の users テーブルから照合
-      const { data, error } = await supabase
-        .from("app_users")
-        .select("*")
-        .eq("email", email)
-        .eq("password", password)
-        .single();
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (error || !data) {
+      const data = await res.json();
+
+      if (!data.ok) {
         setPopup("error");
         return;
       }
 
-      // 🔵 ログイン成功 → localStorage に保存
-      localStorage.setItem("user", JSON.stringify(data));
+      // ★ user オブジェクトを保存
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       setPopup("success");
 
-      // 🔵 ホームへ遷移
       setTimeout(() => {
         router.push("/");
       }, 1200);
@@ -56,7 +54,7 @@ export default function Login() {
           placeholder="メールアドレス"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3   border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+          className="w-full px-4 py-3 mb-4 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
         />
 
         <input

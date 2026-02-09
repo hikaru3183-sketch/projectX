@@ -40,6 +40,58 @@ export default function ObachanGame() {
     setScore(0);
     setGameOver(false);
   };
+  useEffect(() => {
+    const userId = Number(localStorage.getItem("userId"));
+    if (!userId) return;
+
+    async function loadMaxScore() {
+      const res = await fetch(`/api/scores/get?userId=${userId}&game=obachan`);
+      const data = await res.json();
+      setMaxScore(data.value ?? 0);
+    }
+
+    loadMaxScore();
+  }, []);
+  async function saveMaxScore() {
+    const userId = Number(localStorage.getItem("userId"));
+    if (!userId) return;
+
+    await fetch("/api/scores/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        game: "obachan",
+        value: maxScore,
+      }),
+    });
+  }
+  useEffect(() => {
+    const userId = Number(localStorage.getItem("userId"));
+    if (!userId) return;
+
+    const save = () => {
+      navigator.sendBeacon(
+        "/api/scores/save",
+        JSON.stringify({
+          userId,
+          game: "obachan",
+          value: maxScore,
+        }),
+      );
+    };
+
+    const handleUnload = () => save();
+
+    window.addEventListener("beforeunload", handleUnload);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") save();
+    });
+
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [maxScore]);
 
   // Canvas サイズ調整
   useEffect(() => {
@@ -254,7 +306,8 @@ export default function ObachanGame() {
 
       {gameOver && (
         <button
-          onClick={() => {
+          onClick={async () => {
+            await saveMaxScore();
             const canvas = canvasRef.current;
             if (canvas) reset(canvas.width, canvas.height);
           }}

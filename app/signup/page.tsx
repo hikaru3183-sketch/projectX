@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -18,33 +17,25 @@ export default function RegisterPage() {
 
   async function handleRegister() {
     try {
-      // 🔍 まず同じメールが存在するかチェック
-      const { data: existingUser } = await supabase
-        .from("app_users")
-        .select("*")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (existingUser) {
-        setPopup("duplicate");
-        return;
-      }
-
-      // 🔵 新規登録
       const res = await fetch("/api/users/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!res.ok) {
-        setPopup("error");
+      const data = await res.json();
+
+      if (!data.ok) {
+        if (data.error === "duplicate") {
+          setPopup("duplicate");
+        } else {
+          setPopup("error");
+        }
         return;
       }
 
       setPopup("success");
 
-      // 成功したらログイン画面へ
       setTimeout(() => {
         router.push("/login");
       }, 1200);
@@ -85,7 +76,6 @@ export default function RegisterPage() {
         </button>
       </div>
 
-      {/* 成功 */}
       {popup === "success" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-xl text-center border-2 border-green-400">
@@ -102,7 +92,6 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* 失敗 */}
       {popup === "error" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-xl text-center border-2 border-red-400">
@@ -119,7 +108,6 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* 重複メール */}
       {popup === "duplicate" && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl shadow-xl text-center border-2 border-yellow-400">

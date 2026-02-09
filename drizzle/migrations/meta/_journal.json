@@ -15,6 +15,13 @@
       "when": 1770131431385,
       "tag": "0001_regular_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770645408965,
+      "tag": "0002_glossy_union_jack",
+      "breakpoints": true
     }
   ]
 }

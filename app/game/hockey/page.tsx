@@ -24,6 +24,51 @@ export default function GameScreen() {
   const goalHighSE = useRef<HTMLAudioElement | null>(null);
   const goalLowSE = useRef<HTMLAudioElement | null>(null);
 
+  async function saveMaxScore() {
+    const userId = Number(localStorage.getItem("userId"));
+    if (!userId) return;
+
+    const maxScore = logicRef.current?.maxReflectCount ?? 0;
+
+    await fetch("/api/scores/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        game: "hockey",
+        value: maxScore,
+      }),
+    });
+  }
+  useEffect(() => {
+    const userId = Number(localStorage.getItem("userId"));
+    if (!userId) return;
+
+    const save = () => {
+      const maxScore = logicRef.current?.maxReflectCount ?? 0;
+
+      const payload = JSON.stringify({
+        userId,
+        game: "hockey",
+        value: maxScore,
+      });
+
+      navigator.sendBeacon("/api/scores/save", payload);
+    };
+
+    const handleUnload = () => save();
+
+    window.addEventListener("beforeunload", handleUnload);
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") save();
+    });
+
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, []);
+
   // ★ 音初期化
   useEffect(() => {
     hitPool.current = Array.from(
@@ -226,7 +271,13 @@ export default function GameScreen() {
       {showReset && (
         <div className="absolute inset-0 flex items-center justify-center z-50">
           <button
-            onClick={resetGame}
+            onClick={async () => {
+              // ★ 最大スコア保存
+              await saveMaxScore();
+
+              // ★ ゲームリセット
+              resetGame();
+            }}
             className="px-6 py-3 bg-yellow-300 text-black font-bold rounded-lg shadow-lg active:scale-95 mt-[-25px]"
           >
             GAME RESET

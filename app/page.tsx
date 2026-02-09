@@ -14,8 +14,22 @@ export default function Home() {
   const router = useRouter();
 
   const [user, setUser] = useState<any>(null);
-  const [modalType, setModalType] = useState<"reset" | "logout" | null>(null);
+  const [modalType, setModalType] = useState<
+    "reset" | "logout" | "menu" | null
+  >(null);
   const [logoutSuccess, setLogoutSuccess] = useState(false);
+  const [scores, setScores] = useState<any[]>([]);
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchScores = async () => {
+      const res = await fetch(`/api/scores/getall?userId=${user.id}`);
+      const data = await res.json();
+      setScores(data.scores);
+    };
+
+    fetchScores();
+  }, [user]);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -57,31 +71,79 @@ export default function Home() {
     <>
       <main
         className="
-    min-h-screen w-screen flex items-center justify-center
+    min-h-dvh w-full
+    overflow-x-hidden
+    flex items-center justify-center
     bg-gray-100
   "
       >
         <div
           className="
-      w-full min-h-[100dvh]
+      w-full min-h-dvh
       max-w-none p-2
       border-4 border-green-300 rounded-2xl shadow-2xl
       bg-white space-y-2
     "
         >
+          {user && (
+            <button
+              onClick={() => setModalType("menu")}
+              className="fixed top-3 left-3 z-50 bg-green-600 text-white px-3 py-2 rounded-lg shadow font-bold"
+            >
+              スコア
+            </button>
+          )}
+
+          {modalType === "menu" && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-xl shadow-xl w-80 text-center space-y-4">
+                <h2 className="text-xl font-bold text-green-700">スコア一覧</h2>
+
+                {scores.length === 0 && (
+                  <p className="text-gray-500 text-sm">スコアがありません</p>
+                )}
+
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {scores.map((s) => (
+                    <div
+                      key={s.id}
+                      className="p-2 border rounded-lg bg-gray-50 text-left"
+                    >
+                      <p className="font-bold">{s.game}</p>
+                      <p className="text-sm text-gray-600">スコア: {s.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setModalType(null)}
+                  className="w-full py-2 bg-gray-300 rounded font-bold shadow hover:bg-gray-400 transition"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="relative">
             <h1 className="text-5xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-4 border-green-300 ">
-              メインメニュー
+              ひなたくPX
             </h1>
           </div>
 
           <div className="w-full flex justify-center items-center gap-2">
-            <p className="text-sm font-bold text-green-700 px-1">
-              {user ? `⭕ : ${user.email}` : "❌ : ログインしていません"}
-            </p>
-
-            {!user && (
+            {user ? (
               <>
+                <p className="text-sm font-bold text-green-700 px-1">
+                  ⭕ : {user.email}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-green-700 px-1">
+                  ❌ : ログインしていません
+                </p>
+
                 <button
                   onClick={() => router.push("/login")}
                   className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
@@ -113,11 +175,13 @@ export default function Home() {
                   key={g.key}
                   className="flex flex-col gap-2 p-4 border rounded-xl bg-white shadow"
                 >
-                  <button
-                    className={`w-full text-xl px-4 py-6 text-white font-bold rounded-xl shadow-lg hover:scale-105 hover:shadow-2xl transition transform ${g.color}`}
-                  >
-                    <Link href={g.href}>{g.label}</Link>
-                  </button>
+                  <Link href={g.href} className="w-full">
+                    <div
+                      className={`w-full text-xl px-4 py-6 text-white font-bold rounded-xl shadow-lg transition cursor-pointer ${g.color} hover:opacity-80 text-center`}
+                    >
+                      {g.label}
+                    </div>
+                  </Link>
 
                   <p className="text-sm text-gray-700">▶ {g.desc}</p>
                 </div>
