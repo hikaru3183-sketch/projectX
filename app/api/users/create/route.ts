@@ -1,19 +1,10 @@
-import { db } from "@/drizzle/db";
-import { appUsers } from "@/drizzle/schema";
-import bcrypt from "bcryptjs";
+// app/api/users/create/route.ts
+import { registerUser } from "@/lib/auth/auth";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { email, password } = body;
+  const { email, password } = await req.json();
 
-  // パスワードをハッシュ化
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const result = await registerUser(email, password);
 
-  // DB に保存
-  await db.insert(appUsers).values({
-    email,
-    password: hashedPassword,
-  });
-
-  return Response.json({ ok: true });
+  return Response.json(result);
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const SectionBox = ({ children }: { children: React.ReactNode }) => (
-  <section className="w-full max-w-4xl mx-auto p-4 space-y-4 border-2 border-green-200 rounded-xl bg-gray-50 mb-2">
-    {children}
-  </section>
-);
+import { SectionBox } from "@/components/home/SectionBox";
+import { ScoreModal } from "@/components/home/ScoreModal";
+import { ConfirmModal } from "@/components/home/ConfirmModal";
+import { LogoutSuccessModal } from "@/components/home/LogoutSuccessModal";
+import { GameCard } from "@/components/home/GameCard";
+import { UserStatusBar } from "@/components/home/UserStatusBar";
 
 export default function Home() {
   const router = useRouter();
@@ -19,22 +19,30 @@ export default function Home() {
   >(null);
   const [logoutSuccess, setLogoutSuccess] = useState(false);
   const [scores, setScores] = useState<any[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("/api/me", {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then((res) => res.json())
+      .then((data) => data?.id && setUser(data));
+  }, []);
+
   useEffect(() => {
     if (!user) return;
 
-    const fetchScores = async () => {
-      const res = await fetch(`/api/scores/getall?userId=${user.id}`);
-      const data = await res.json();
-      setScores(data.scores);
-    };
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    fetchScores();
+    fetch("/api/scores/getall", {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then((res) => res.json())
+      .then((data) => setScores(data.scores || []));
   }, [user]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
-  }, []);
 
   const games = [
     {
@@ -69,22 +77,8 @@ export default function Home() {
 
   return (
     <>
-      <main
-        className="
-    min-h-dvh w-full
-    overflow-x-hidden
-    flex items-center justify-center
-    bg-gray-100
-  "
-      >
-        <div
-          className="
-      w-full min-h-dvh
-      max-w-none p-2
-      border-4 border-green-300 rounded-2xl shadow-2xl
-      bg-white space-y-2
-    "
-        >
+      <main className="min-h-dvh w-full overflow-x-hidden flex items-center justify-center bg-gray-100">
+        <div className="w-full min-h-dvh p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
           {user && (
             <button
               onClick={() => setModalType("menu")}
@@ -95,73 +89,15 @@ export default function Home() {
           )}
 
           {modalType === "menu" && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-xl shadow-xl w-80 text-center space-y-4">
-                <h2 className="text-xl font-bold text-green-700">スコア一覧</h2>
-
-                {scores.length === 0 && (
-                  <p className="text-gray-500 text-sm">スコアがありません</p>
-                )}
-
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {scores.map((s) => (
-                    <div
-                      key={s.id}
-                      className="p-2 border rounded-lg bg-gray-50 text-left"
-                    >
-                      <p className="font-bold">{s.game}</p>
-                      <p className="text-sm text-gray-600">スコア: {s.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setModalType(null)}
-                  className="w-full py-2 bg-gray-300 rounded font-bold shadow hover:bg-gray-400 transition"
-                >
-                  閉じる
-                </button>
-              </div>
-            </div>
+            <ScoreModal scores={scores} onClose={() => setModalType(null)} />
           )}
 
-          <div className="relative">
-            <h1 className="text-5xl font-bold text-center text-[#1f1f1f] bg-green-50 px-6 py-6 rounded-md border-4 border-green-300 ">
-              ひなたくPX
-            </h1>
-          </div>
+          <h1 className="text-5xl font-bold text-center bg-green-50 px-6 py-6 rounded-md border-4 border-green-300">
+            ホーム
+          </h1>
 
-          <div className="w-full flex justify-center items-center gap-2">
-            {user ? (
-              <>
-                <p className="text-sm font-bold text-green-700 px-1">
-                  ⭕ : {user.email}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-bold text-green-700 px-1">
-                  ❌ : ログインしていません
-                </p>
+          <UserStatusBar user={user} />
 
-                <button
-                  onClick={() => router.push("/login")}
-                  className="px-2 py-0.5 text-xs bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition"
-                >
-                  ログイン
-                </button>
-
-                <button
-                  onClick={() => router.push("/signup")}
-                  className="px-2 py-0.5 text-xs bg-sky-500 text-white font-bold rounded-md shadow hover:bg-sky-600 transition"
-                >
-                  アカウント作成
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* 🎮 ゲーム選択（カード型） */}
           <SectionBox>
             <h1 className="text-3xl font-extrabold text-center mb-2">
               ゲーム選択
@@ -170,24 +106,10 @@ export default function Home() {
             </h1>
 
             <div className="flex flex-col gap-2">
-              {games.map((g) => (
-                <div
-                  key={g.key}
-                  className="flex flex-col gap-2 p-4 border rounded-xl bg-white shadow"
-                >
-                  <Link href={g.href} className="w-full">
-                    <div
-                      className={`w-full text-xl px-4 py-6 text-white font-bold rounded-xl shadow-lg transition cursor-pointer ${g.color} hover:opacity-80 text-center`}
-                    >
-                      {g.label}
-                    </div>
-                  </Link>
-
-                  <p className="text-sm text-gray-700">▶ {g.desc}</p>
-                </div>
+              {games.map(({ key, ...rest }) => (
+                <GameCard key={key} {...rest} />
               ))}
 
-              {/* 共通 */}
               <div className="flex flex-col gap-2 p-4 border rounded-xl bg-white shadow">
                 <div className="text-lg font-bold text-gray-700">共通</div>
 
@@ -214,64 +136,38 @@ export default function Home() {
             </div>
           </SectionBox>
 
-          {/* モーダル */}
-          {modalType && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-              <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                <p className="text-lg font-bold mb-4">
-                  {modalType === "reset"
-                    ? "初期化しますか？"
-                    : "ログアウトしますか？"}
-                </p>
+          {modalType === "reset" && (
+            <ConfirmModal
+              type="reset"
+              onConfirm={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              onCancel={() => setModalType(null)}
+            />
+          )}
 
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={() => {
-                      if (modalType === "reset") {
-                        localStorage.clear();
-                        window.location.reload();
-                      } else {
-                        localStorage.removeItem("user");
-                        setUser(null);
-                        setModalType(null);
-                        setLogoutSuccess(true);
-                      }
-                    }}
-                    className="px-4 py-2 bg-red-500 text-white rounded font-bold shadow-[0_4px_0_#7f1d1d] active:shadow-none active:translate-y-1 transition"
-                  >
-                    {modalType === "reset" ? "消去する" : "ログアウト"}
-                  </button>
-
-                  <button
-                    onClick={() => setModalType(null)}
-                    className="px-4 py-2 bg-gray-300 rounded font-bold shadow-[0_4px_0_#4b5563] active:shadow-none active:translate-y-1 transition"
-                  >
-                    キャンセル
-                  </button>
-                </div>
-              </div>
-            </div>
+          {modalType === "logout" && (
+            <ConfirmModal
+              type="logout"
+              onConfirm={() => {
+                localStorage.removeItem("token");
+                setUser(null);
+                setModalType(null);
+                setLogoutSuccess(true);
+              }}
+              onCancel={() => setModalType(null)}
+            />
           )}
 
           {logoutSuccess && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-              <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                <p className="text-lg font-bold mb-4">ログアウトしました</p>
-
-                <button
-                  onClick={() => setLogoutSuccess(false)}
-                  className="px-4 py-2 bg-green-500 text-white rounded font-bold shadow-[0_4px_0_#166534] active:shadow-none active:translate-y-1 transition"
-                >
-                  OK
-                </button>
-              </div>
-            </div>
+            <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />
           )}
         </div>
       </main>
 
       <footer className="w-full text-center text-sm text-gray-500 py-6">
-        © {new Date().getFullYear()} hikaru3183-sketch. Released under the MIT
+        © {new Date().getFullYear()} HiNaTaKu-Px. Released under the MIT
         License.
       </footer>
     </>

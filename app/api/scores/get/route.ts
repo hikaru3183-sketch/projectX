@@ -1,5 +1,5 @@
-import { db } from "@/drizzle/db";
-import { scores } from "@/drizzle/schema";
+import { db } from "@/lib/db/db";
+import { scores } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function GET(req: Request) {

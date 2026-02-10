@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 type Props = {
   show: boolean;
   currentStage: number;
+  onFinalStageEnter?: () => void; // ★ ロジック側に通知する
 };
 
 const stages = ["初戦", "準決", "決勝", "優勝"];
 
-export default function BracketUI({ show, currentStage }: Props) {
+export function BracketUI({ show, currentStage, onFinalStageEnter }: Props) {
   return (
     <AnimatePresence>
       {show && (
@@ -50,10 +51,8 @@ export default function BracketUI({ show, currentStage }: Props) {
                               ease: "easeOut",
                             }}
                             onAnimationStart={() => {
-                              if (index === 3) {
-                                const audio = new Audio("/sounds/clear.mp3");
-                                audio.volume = 0.8;
-                                audio.play();
+                              if (index === 3 && onFinalStageEnter) {
+                                onFinalStageEnter(); // ★ ロジックに通知
                               }
                             }}
                             className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold"

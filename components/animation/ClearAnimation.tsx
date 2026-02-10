@@ -9,6 +9,11 @@ export const ClearAnimation = () => {
 
   // --- Canvas 粒子（ClearAnimation1 の要素） ---
   useEffect(() => {
+    // ★ ここで音を鳴らす（追加）
+    const audio = new Audio("/sounds/clear.mp3");
+    audio.volume = 0.9;
+    audio.play().catch(() => {});
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -56,7 +61,7 @@ export const ClearAnimation = () => {
         transition={{ duration: 0.35 }}
       />
 
-      {/* --- 金色フラッシュ（ClearAnimation1） --- */}
+      {/* --- 金色フラッシュ --- */}
       <motion.div
         className="absolute inset-0 bg-yellow-200"
         initial={{ opacity: 0 }}
@@ -64,7 +69,7 @@ export const ClearAnimation = () => {
         transition={{ duration: 0.5, delay: 0.05 }}
       />
 
-      {/* --- 放射状グラデーション爆発（ClearAnimation1） --- */}
+      {/* --- 放射状グラデーション爆発 --- */}
       <motion.div
         className="absolute inset-0"
         style={{
@@ -76,7 +81,7 @@ export const ClearAnimation = () => {
         transition={{ duration: 0.9, ease: "easeOut" }}
       />
 
-      {/* --- 光輪（ClearAnimation1） --- */}
+      {/* --- 光輪 --- */}
       <motion.div
         className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full -translate-x-1/2 -translate-y-1/2"
         style={{
@@ -88,7 +93,7 @@ export const ClearAnimation = () => {
         transition={{ duration: 1.2, ease: "easeOut" }}
       />
 
-      {/* --- SVG バースト（ClearAnimation1） --- */}
+      {/* --- SVG バースト --- */}
       <motion.svg
         className="absolute top-1/2 left-1/2 w-48 h-48 -translate-x-1/2 -translate-y-1/2"
         initial={{ scale: 0.3, opacity: 1 }}
@@ -103,7 +108,6 @@ export const ClearAnimation = () => {
 
       {/* --- ClearAnimation2 の中心アニメーション --- */}
       <div className="relative w-0 h-0">
-        {/* 波紋（ClearAnimation2） */}
         {[0, 1, 2].map((i) => (
           <motion.div
             key={`ripple-${i}`}
@@ -114,7 +118,6 @@ export const ClearAnimation = () => {
           />
         ))}
 
-        {/* 光線（ClearAnimation2） */}
         {[...Array(8)].map((_, i) => {
           const angle = (i / 8) * Math.PI * 2;
           return (
@@ -129,7 +132,6 @@ export const ClearAnimation = () => {
           );
         })}
 
-        {/* 放射状粒子（ClearAnimation2） */}
         {particles.map((_, i) => {
           const angle = (i / particles.length) * Math.PI * 2;
           const distance = 250;
@@ -151,7 +153,6 @@ export const ClearAnimation = () => {
         })}
       </div>
 
-      {/* --- Canvas 粒子（ClearAnimation1） --- */}
       <canvas
         ref={canvasRef}
         width={window.innerWidth}
