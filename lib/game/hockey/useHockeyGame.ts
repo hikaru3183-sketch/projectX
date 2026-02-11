@@ -20,8 +20,8 @@ export function useHockeyGame() {
   const goalHighSE = useRef<HTMLAudioElement | null>(null);
   const goalLowSE = useRef<HTMLAudioElement | null>(null);
 
-  // BGM
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  // requestAnimationFrame ID
+  const frameRef = useRef<number | null>(null);
 
   // 向きチェック
   useEffect(() => {
@@ -44,15 +44,26 @@ export function useHockeyGame() {
 
     goalHighSE.current = new Audio("/sounds/win.mp3");
     goalLowSE.current = new Audio("/sounds/lose.mp3");
-  }, []);
 
-  // BGM
-  useEffect(() => {
-    const bgm = new Audio("/sounds/.mp3");
-    bgm.loop = true;
-    bgm.volume = 0.5;
-    bgmRef.current = bgm;
-    return () => bgm.pause();
+    // 🔥 アンマウント時に完全停止
+    return () => {
+      [...hitPool.current, ...wallPool.current].forEach((a) => {
+        a.pause();
+        a.currentTime = 0;
+        a.src = "";
+      });
+
+      if (goalHighSE.current) {
+        goalHighSE.current.pause();
+        goalHighSE.current.currentTime = 0;
+        goalHighSE.current.src = "";
+      }
+      if (goalLowSE.current) {
+        goalLowSE.current.pause();
+        goalLowSE.current.currentTime = 0;
+        goalLowSE.current.src = "";
+      }
+    };
   }, []);
 
   // ゲーム開始
@@ -90,17 +101,15 @@ export function useHockeyGame() {
 
     setStarted(true);
 
-    let frame: number;
     const loop = () => {
       const result = logicRef.current?.update();
       if (result === "reset") setShowReset(true);
 
       setTick((t) => t + 1);
-      frame = requestAnimationFrame(loop);
+      frameRef.current = requestAnimationFrame(loop);
     };
 
     loop();
-    return () => cancelAnimationFrame(frame);
   };
 
   // リセット
@@ -165,6 +174,19 @@ export function useHockeyGame() {
       : touch.clientY - rect.top;
     logic.movePlayer(pos);
   };
+
+  // 🔥 useHockeyGame がアンマウントされた時の完全クリーンアップ
+  useEffect(() => {
+    return () => {
+      // requestAnimationFrame 停止
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+
+      // GameLogic 停止
+      logicRef.current = null;
+    };
+  }, []);
 
   return {
     started,

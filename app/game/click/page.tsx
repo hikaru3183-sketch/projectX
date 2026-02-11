@@ -40,40 +40,36 @@ export default function ClickGamePage() {
   ).map((name) => [name, stockItems[name] as number]);
 
   return (
-    <div className="overflow-auto h-screen">
-      <main className="w-full min-h-[100dvh] p-4 border-4 border-yellow-300 rounded-2xl shadow-2xl">
-        <AnimatePresence>
-          {showSuperFormal && <ClearAnimation />}
-        </AnimatePresence>
+    <main className="w-full min-h-[100dvh] p-4 border-4 border-yellow-300 rounded-2xl shadow-2xl bg-white">
+      <AnimatePresence>{showSuperFormal && <ClearAnimation />}</AnimatePresence>
 
-        <CoinDisplay coins={coins} />
+      <CoinDisplay coins={coins} />
 
-        <div className="text-center">
-          <ClickButton onClick={handleClick} />
-          <CoinEffect
-            coinEffect={coinEffect}
-            onFinish={() => setCoinEffect(null)}
-          />
-        </div>
-
-        <ItemList
-          sortedItems={sortedItems}
-          onUseItem={handleUseItem}
-          onUseAll={useAllItemsAllTypes}
+      <div className="text-center">
+        <ClickButton onClick={handleClick} />
+        <CoinEffect
+          coinEffect={coinEffect}
+          onFinish={() => setCoinEffect(null)}
         />
+      </div>
 
-        <GachaPanel currentCoins={coins ?? 0} handleGacha={handleGacha} />
+      <ItemList
+        sortedItems={sortedItems}
+        onUseItem={handleUseItem}
+        onUseAll={useAllItemsAllTypes}
+      />
 
-        <div className="text-[10px] px-6 max-w-md mx-auto mt-2">
-          <ClearButton safeCoins={coins ?? 0} onClear={handleClear} />
-        </div>
+      <GachaPanel currentCoins={coins ?? 0} handleGacha={handleGacha} />
 
-        <div className="text-center text-xs text-gray-700 mt-4 h-16">
-          <MessageBox message={message} visible={true} duration={3} />
-        </div>
+      <div className="text-[10px] px-6 max-w-md mx-auto mt-2">
+        <ClearButton safeCoins={coins ?? 0} onClear={handleClear} />
+      </div>
 
-        {showClearButton && <ClearModal onHome={() => router.back()} />}
-      </main>
-    </div>
+      <div className="text-center text-xs text-gray-700 mt-4 h-16">
+        <MessageBox message={message} visible={true} duration={3} />
+      </div>
+
+      {showClearButton && <ClearModal onHome={() => router.back()} />}
+    </main>
   );
 }
