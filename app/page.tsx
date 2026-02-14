@@ -14,8 +14,6 @@ import { GameCard } from "@/components/home/GameCard";
 import { UserStatusBar } from "@/components/home/UserStatusBar";
 
 export default function Home() {
-  const router = useRouter();
-
   const [user, setUser] = useState<any>(null);
   const [modalType, setModalType] = useState<
     "reset" | "logout" | "menu" | null

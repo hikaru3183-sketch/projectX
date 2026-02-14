@@ -27,12 +27,11 @@ export default function HockeyPage() {
         ${started && !showReset ? "md:cursor-none" : "md:cursor-auto"}
       `}
     >
-      {started && (
-        <ScoreHeader
-          score={logic?.reflectCount ?? 0}
-          maxScore={logic?.maxReflectCount ?? 0}
-        />
-      )}
+      {/* ★ 常に表示する */}
+      <ScoreHeader
+        score={logic?.reflectCount ?? 0}
+        maxScore={logic?.maxReflectCount ?? 0}
+      />
 
       {!started && <StartButton onStart={startGame} />}
 

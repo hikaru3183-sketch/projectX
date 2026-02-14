@@ -14,26 +14,20 @@ export function useClickGame() {
 
   const effectIdRef = useRef(0);
 
-  // -----------------------------
   // 初期コイン読み込み
-  // -----------------------------
   useEffect(() => {
     const saved = localStorage.getItem("coins");
     setCoins(saved ? JSON.parse(saved) : 10000);
   }, []);
 
-  // -----------------------------
   // コイン保存
-  // -----------------------------
   useEffect(() => {
     if (coins !== null) {
       localStorage.setItem("coins", JSON.stringify(coins));
     }
   }, [coins]);
 
-  // -----------------------------
-  // コインクリック（音なし）
-  // -----------------------------
+  // コインクリック
   const getRandomAmount = () => {
     const r = Math.random();
     if (r < 0.7) return 1;
@@ -54,9 +48,7 @@ export function useClickGame() {
     });
   };
 
-  // -----------------------------
   // ガチャ
-  // -----------------------------
   const gachaItems = ["💡ノーマル", "✨レア", "🎇ウルトラ", "🎆レジェンド"];
 
   const getRandomItem = () => {
@@ -105,9 +97,7 @@ export function useClickGame() {
     showMessage(`${count}連結果：${formatted}`);
   };
 
-  // -----------------------------
   // アイテム使用
-  // -----------------------------
   const itemCoinValues: Record<string, number> = {
     "💡ノーマル": 100,
     "✨レア": 500,
@@ -141,17 +131,21 @@ export function useClickGame() {
   };
 
   // -----------------------------
-  // メッセージ
+  // ★ 修正版 showMessage（ここが重要）
   // -----------------------------
   const showMessage = (text: string) => {
     setMessage(text);
-    setVisible(true);
-    setTimeout(() => setVisible(false), 1500);
+
+    // 一度 false にしてリセット
+    setVisible(false);
+
+    // 少し遅らせて true にする
+    setTimeout(() => {
+      setVisible(true);
+    }, 20);
   };
 
-  // -----------------------------
-  // クリア（音なし）
-  // -----------------------------
+  // クリア
   const handleClear = () => {
     setShowSuperFormal(true);
 
