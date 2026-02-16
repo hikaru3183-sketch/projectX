@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { getUserAction } from "@/app/actions/getUser";
-import { getScoresAction } from "@/app/actions/getScores";
-
 import { SectionBox } from "@/components/home/SectionBox";
 import { ScoreModal } from "@/components/home/ScoreModal";
 import { ConfirmModal } from "@/components/home/ConfirmModal";
@@ -20,29 +17,35 @@ export default function Home() {
   >(null);
   const [logoutSuccess, setLogoutSuccess] = useState(false);
   const [scores, setScores] = useState<any[]>([]);
+  const router = useRouter();
 
-  // ユーザー情報取得
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    getUserAction(token).then((res) => {
-      if (res.ok) setUser(res.user);
-    });
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
-  // スコア取得
-  useEffect(() => {
-    if (!user) return;
+  // ★ APIを叩く方式のログアウト処理
+  const handleLogout = async () => {
+    try {
+      // 1. APIルートを叩いてサーバー側のセッションを消す
+      const res = await fetch("/api/logout", { method: "POST" });
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
+      if (res.ok) {
+        // 2. ローカルの情報をクリア
+        localStorage.removeItem("user");
+        setUser(null);
+        setModalType(null);
+        setLogoutSuccess(true);
 
-    getScoresAction(token).then((res) => {
-      if (res.ok) setScores(res.scores);
-    });
-  }, [user]);
-
+        // 3. 画面を最新状態にする
+        router.refresh();
+      }
+    } catch (err) {
+      console.error("ログアウト失敗:", err);
+    }
+  };
   const games = [
     {
       key: "click",
@@ -149,12 +152,7 @@ export default function Home() {
           {modalType === "logout" && (
             <ConfirmModal
               type="logout"
-              onConfirm={() => {
-                localStorage.removeItem("token");
-                setUser(null);
-                setModalType(null);
-                setLogoutSuccess(true);
-              }}
+              onConfirm={handleLogout} // ここで handleLogout を呼ぶ
               onCancel={() => setModalType(null)}
             />
           )}

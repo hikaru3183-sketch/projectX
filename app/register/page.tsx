@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerAction } from "@/app/actions/register";
 
 import { AuthInput } from "@/components/auth/AuthInput";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -19,11 +18,18 @@ export default function RegisterPage() {
 
   async function handleRegister() {
     try {
-      // ★★★ FormData をやめて、普通に 2 引数で呼ぶ ★★★
-      const result = await registerAction(email, password);
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (!result.ok) {
-        if (result.error === "duplicate") {
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.error === "duplicate") {
           setPopup("duplicate");
         } else {
           setPopup("error");
@@ -31,10 +37,13 @@ export default function RegisterPage() {
         return;
       }
 
+      // 必要ならユーザー情報を保存
+      localStorage.setItem("user", JSON.stringify(data.user));
       setPopup("success");
 
       setTimeout(() => {
-        router.push("/login");
+        router.push("/");
+        router.refresh();
       }, 1200);
     } catch (err) {
       console.error(err);
@@ -51,14 +60,12 @@ export default function RegisterPage() {
           value={email}
           onChange={setEmail}
         />
-
         <AuthInput
           type="password"
           placeholder="パスワード"
           value={password}
           onChange={setPassword}
         />
-
         <AuthButton label="登録" color="sky" onClick={handleRegister} />
       </AuthCard>
 
@@ -70,16 +77,14 @@ export default function RegisterPage() {
           onClose={() => setPopup(null)}
         />
       )}
-
       {popup === "error" && (
         <Popup
           type="error"
-          message="アカウント作成に失敗しました…"
+          message="登録に失敗しました…"
           color="red"
           onClose={() => setPopup(null)}
         />
       )}
-
       {popup === "duplicate" && (
         <Popup
           type="duplicate"

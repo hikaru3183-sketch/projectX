@@ -1,9 +1,11 @@
-import bcrypt from "bcryptjs";
+// lib/hash.ts
+import { hash } from "@node-rs/argon2";
 
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
-}
-
-export async function verifyPassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash);
+  return await hash(password, {
+    memoryCost: 19456,
+    timeCost: 2,
+    outputLen: 32,
+    parallelism: 1,
+  });
 }

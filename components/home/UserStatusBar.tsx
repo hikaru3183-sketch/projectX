@@ -25,7 +25,7 @@ export function UserStatusBar({ user }: { user: any }) {
           </button>
 
           <button
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/register")}
             className="px-2 py-0.5 text-xs bg-sky-500 text-white font-bold rounded-md shadow hover:bg-sky-600 transition"
           >
             アカウント作成

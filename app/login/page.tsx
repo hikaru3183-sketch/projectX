@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginAction } from "@/app/actions/login";
 
 import { AuthInput } from "@/components/auth/AuthInput";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -16,21 +15,30 @@ export default function Login() {
   const router = useRouter();
 
   const login = async () => {
-    // ★★★ FormData をやめて、普通に 2 引数で呼ぶ ★★★
-    const result = await loginAction(email, password);
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (!result.ok || !result.token) {
+    const data = await res.json();
+
+    if (!res.ok) {
       setPopup("error");
       return;
     }
 
-    // ★★★ userId を使うために user も保存する ★★★
-    localStorage.setItem("token", result.token);
-    localStorage.setItem("user", JSON.stringify(result.user));
+    // 必要ならユーザー情報を保存
+    localStorage.setItem("user", JSON.stringify(data.user));
 
     setPopup("success");
 
-    setTimeout(() => router.push("/"), 1200);
+    setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 1200);
   };
 
   return (

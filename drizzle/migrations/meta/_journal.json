@@ -29,6 +29,13 @@
       "when": 1770993723046,
       "tag": "0003_gray_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771250491836,
+      "tag": "0004_cheerful_firestar",
+      "breakpoints": true
     }
   ]
 }

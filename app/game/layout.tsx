@@ -2,6 +2,12 @@
 
 import { useRouter } from "next/navigation";
 
+export const metadata = {
+  icons: {
+    icon: "/favicon.ico",
+  },
+};
+
 export default function GameLayout({
   children,
 }: {
