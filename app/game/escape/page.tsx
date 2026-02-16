@@ -16,15 +16,12 @@ export default function EscapePage() {
     maxScore,
     gameOver,
     reset,
-    saveMaxScore,
     handleStickMove,
     handleStickEnd,
   } = useEscapeGame();
 
-  // ★★★★★ ゲームオーバー時に自動で保存する ★★★★★
   useEffect(() => {
     if (gameOver) {
-      saveMaxScore();
     }
   }, [gameOver]);
 
