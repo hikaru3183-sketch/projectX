@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { playSound } from "@/components/sound/Sound";
 
 type Props = {
   show: boolean;
@@ -51,9 +52,7 @@ export default function BracketUI({ show, currentStage }: Props) {
                             }}
                             onAnimationStart={() => {
                               if (index === 3) {
-                                const audio = new Audio("/sounds/clear.mp3");
-                                audio.volume = 0.8;
-                                audio.play();
+                                playSound("/sounds/clear.mp3", 0.8);
                               }
                             }}
                             className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold"

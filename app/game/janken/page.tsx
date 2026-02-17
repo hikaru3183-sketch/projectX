@@ -1,54 +1,44 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import BracketUI from "./BracketUI";
-import { ClearAnimation } from "@/components/animation/ClearAnimation";
 
-const hands = ["✊", "✌️", "🖐️"];
+import BracketUI from "@/components/janken/BracketUI";
+import { BgmController } from "@/components/click/BgmController";
+
+import { StageHeader } from "@/components/janken/StageHeader";
+import { WinStars } from "@/components/janken/WinStars";
+import { ResultOverlay } from "@/components/janken/ResultOverlay";
+import { JankenButtons } from "@/components/janken/JankenButtons";
+import { SkillButton } from "@/components/janken/SkillButton";
+import { JankenAnimation } from "@/components/janken/JankenAnimation";
+
+import { useJankenGame } from "./logic/useJankenGame";
 
 export default function JankenPage() {
   const router = useRouter();
 
-  // ★ battleCount は不要なので削除
-  const [skillPoints, setSkillPoints] = useState(0); // スキルポイント
+  const {
+    skillPoints,
+    playerWin,
+    cpuWin,
+    currentStage,
+    resultText,
+    resultState,
+    endMessage,
+    showClear,
+    play,
+    useSkill,
+    applyResult,
+    resetAll,
+    setCurrentStage,
+    setPlayerWin,
+    setCpuWin,
+  } = useJankenGame();
 
-  const useSkill = () => {
-    if (showBracketModal || resultState !== "none") return;
+  const [animating, setAnimating] = useState(false);
+  const [showBracket, setShowBracket] = useState(false);
 
-    if (skillPoints < 5) {
-      setResultText("スキルポイントが足りません！");
-      return;
-    }
-
-    // ★ 5ポイント消費
-    setSkillPoints((prev) => prev - 5);
-
-    // ★ 毎回違うテキストにする（これが重要）
-    setResultText(`必殺技!! 勝ち！_${Date.now()}`);
-    setScrambled("必殺技!! 勝ち！");
-    // ★ 勝ち扱い
-    setWinner("player");
-  };
-
-  const [playerWin, setPlayerWin] = useState(0);
-  const [cpuWin, setCpuWin] = useState(0);
-  const [currentStage, setCurrentStage] = useState(0);
-
-  const [resultText, setResultText] = useState("");
-  const [scrambled, setScrambled] = useState("");
-
-  const [showBracketModal, setShowBracketModal] = useState(false);
-
-  const [resultState, setResultState] = useState<"none" | "win" | "lose">(
-    "none",
-  );
-
-  const [endMessage, setEndMessage] = useState("");
-
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
-
-  const [showClear, setShowClear] = useState(false);
   const stageLabels = ["初戦", "準決", "決勝", "🙌"];
   const stageBackgrounds = [
     "from-blue-900 to-black",
@@ -57,275 +47,101 @@ export default function JankenPage() {
     "from-yellow-600 to-black",
   ];
 
-  const [isAnimating, setIsAnimating] = useState(false);
+  const handlePlay = (hand: string) => {
+    const result = play(hand);
+    if (!result) return;
 
-  const [winner, setWinner] = useState<"player" | "cpu" | "draw" | null>(null);
-
-  const playBGM = () => {
-    if (!bgmRef.current) {
-      const bgm = new Audio("/sounds/click/clickbgm.mp3");
-      bgm.loop = true;
-      bgm.volume = 0.5;
-      bgmRef.current = bgm;
-    }
-
-    bgmRef.current.currentTime = 0;
-    bgmRef.current.play().catch(() => {});
+    setAnimating(true);
   };
 
-  useEffect(() => {
-    playBGM();
+  const handleSkill = () => {
+    const result = useSkill();
+    if (result === "error") return;
 
-    return () => {
-      if (bgmRef.current) {
-        bgmRef.current.pause();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (resultState !== "none") {
-      if (bgmRef.current) {
-        bgmRef.current.pause();
-        bgmRef.current.currentTime = 0;
-      }
-    }
-  }, [resultState]);
-
-  useEffect(() => {
-    if (resultState === "lose") {
-      new Audio("/sounds/lose.mp3").play();
-    }
-  }, [resultState]);
-
-  const judge = (p: string, c: string) => {
-    if (p === c) return "あいこ";
-    if (
-      (p === "✊" && c === "✌️") ||
-      (p === "✌️" && c === "🖐️") ||
-      (p === "🖐️" && c === "✊")
-    )
-      return "勝ち";
-    return "負け";
+    setAnimating(true);
   };
 
-  const play = (player: string) => {
-    if (showBracketModal || resultState !== "none") return;
-
-    const cpu = hands[Math.floor(Math.random() * 3)];
-    const result = judge(player, cpu);
-
-    setResultText(`${player} ${result} ${cpu}`);
-
-    if (result === "勝ち") setWinner("player");
-    else if (result === "負け") setWinner("cpu");
-    else setWinner("draw");
-
-    // ★ じゃんけん1回ごとにスキルポイント +1
-    setSkillPoints((prev) => prev + 1);
-  };
-
+  // ★ applyResult の後にステージ進行を行う
   useEffect(() => {
-    if (!resultText) return;
-
-    setIsAnimating(true);
-
-    setScrambled("じゃん…");
-
-    const t1 = setTimeout(() => {
-      const kenSE = new Audio("/sounds/janken/pon.mp3");
-      kenSE.volume = 1.0;
-      kenSE.play();
-      setScrambled("けん…");
-    }, 500);
-
-    const t2 = setTimeout(() => {
-      const ponSE = new Audio("/sounds/janken/pon.mp3");
-      ponSE.volume = 1.0;
-      ponSE.play();
-      setScrambled(resultText);
-
-      if (winner === "player") setPlayerWin((prev) => prev + 1);
-      if (winner === "cpu") setCpuWin((prev) => prev + 1);
-
-      setIsAnimating(false);
-    }, 1000);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [resultText]);
-
-  useEffect(() => {
-    if (isAnimating) return;
-
     if (playerWin === 3) {
-      setShowBracketModal(true);
-      setCurrentStage((prev) => prev + 1);
+      setShowBracket(true);
 
       setTimeout(() => {
-        setShowBracketModal(false);
-        resetForNextMatch();
+        setCurrentStage((prev) => prev + 1);
+        setPlayerWin(0);
+        setCpuWin(0);
+        setShowBracket(false);
       }, 1800);
     }
-  }, [playerWin, isAnimating]);
-
-  useEffect(() => {
-    if (isAnimating) return;
-
-    if (currentStage === 3) {
-      setTimeout(() => {
-        setShowClear(true);
-
-        setEndMessage("🎉 優勝おめでとう！ 🎉");
-        setResultState("win");
-
-        const audio = new Audio("/sounds/win.mp3");
-        audio.volume = 0.8;
-        audio.play();
-      }, 2000);
-    }
-  }, [currentStage, isAnimating]);
-
-  useEffect(() => {
-    if (isAnimating) return;
-
-    if (cpuWin === 3) {
-      setEndMessage("CPUの勝ち…");
-      setResultState("lose");
-    }
-  }, [cpuWin, isAnimating]);
-
-  const resetForNextMatch = () => {
-    setPlayerWin(0);
-    setCpuWin(0);
-    setResultText("");
-  };
-
-  const resetAll = () => {
-    setPlayerWin(0);
-    setCpuWin(0);
-    setCurrentStage(0);
-    setResultText("");
-    setEndMessage("");
-    setResultState("none");
-    playBGM();
-  };
+  }, [playerWin]);
 
   return (
     <div className="relative">
-      <BracketUI show={showBracketModal} currentStage={currentStage} />
+      {/* 🎵 勝敗がついていない間だけ BGM 再生 */}
+      {resultState === "none" && (
+        <BgmController src="/sounds/click/clickbgm.mp3" />
+      )}
+
+      {/* ★ ステージ演出 */}
+      <BracketUI show={showBracket} currentStage={currentStage} />
 
       <main
         className={`w-full min-h-[100dvh] p-6 border-4 border-pink-300 rounded-2xl 
-  bg-gradient-to-b ${stageBackgrounds[currentStage]} 
-  text-white font-mono pt-[32px]
-  flex flex-col justify-center items-center
-  ${resultState !== "none" ? "pointer-events-none" : ""}`}
+          bg-gradient-to-b ${stageBackgrounds[currentStage]} 
+          text-white font-mono pt-[32px]
+          flex flex-col justify-center items-center
+          ${resultState !== "none" ? "pointer-events-none" : ""}`}
       >
         <div className="text-center mb-4 text-lg font-bold">
-          <p className="text-3xl mb-2 ">🤛{stageLabels[currentStage]}🤜</p>
+          {/* ステージ名 */}
+          <StageHeader label={stageLabels[currentStage]} />
 
-          <div className="flex justify-between px-2">
-            <div className="flex">
-              <span className="text-xl">あなた:</span>
-              {[0, 1, 2].map((i) => (
-                <span key={i} className="text-yellow-300 text-2xl">
-                  {i < playerWin ? "★" : "☆"}
-                </span>
-              ))}
-            </div>
-
-            <div className="flex">
-              <span className="text-xl">CPU:</span>
-              {[0, 1, 2].map((i) => (
-                <span key={i} className="text-yellow-300 text-2xl">
-                  {i < cpuWin ? "★" : "☆"}
-                </span>
-              ))}
-            </div>
+          {/* 勝敗スター */}
+          <div className="flex justify-between px-2 w-full max-w-sm">
+            <WinStars label="あなた" winCount={playerWin} />
+            <WinStars label="CPU" winCount={cpuWin} />
           </div>
 
-          <p className="text-center text-xl  h-8 flex items-center justify-center">
-            {scrambled.replace(/_.+$/, "")}{" "}
-          </p>
-
-          <div className="flex gap-5 justify-center mt-4">
-            {hands.map((h) => (
-              <button
-                key={h}
-                disabled={isAnimating}
-                onClick={() => {
-                  new Audio("/sounds/janken/pon.mp3").play();
-                  play(h);
-                }}
-                className={`text-6xl p-3 rounded-full border-2 transition
-    ${
-      isAnimating
-        ? "bg-gray-600 border-gray-400 opacity-50 cursor-not-allowed"
-        : "bg-gray-800 border-pink-500 hover:scale-125"
-    }
-  `}
-              >
-                {h}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex justify-center items-center gap-10 mt-4">
-            <button
-              onClick={() => {
-                new Audio("/sounds/janken/vvv.mp3").play(); // ★ ここで音を鳴らす
-                useSkill();
+          {/* じゃんけん演出 or 結果テキスト */}
+          {animating ? (
+            <JankenAnimation
+              trigger={animating}
+              resultText={resultText}
+              onFinish={() => {
+                applyResult();
+                setAnimating(false);
               }}
-              disabled={skillPoints < 5 || isAnimating}
-              className={`px-6 py-3 rounded-xl font-bold border-4 transition
-    ${
-      skillPoints < 5 || isAnimating
-        ? "bg-gray-400 border-gray-500 text-gray-700"
-        : "bg-yellow-300 border-yellow-500 text-black hover:scale-105"
-    }
-  `}
-            >
-              必殺技<p>スキルポイント: {skillPoints}</p>
-            </button>
+            />
+          ) : (
+            <p className="text-center text-xl h-8 flex items-center justify-center"></p>
+          )}
+
+          {/* ✊✌️🖐️ ボタン */}
+          <JankenButtons
+            disabled={animating || resultState !== "none"}
+            onPlay={handlePlay}
+          />
+
+          {/* 必殺技 */}
+          <div className="flex justify-center items-center gap-10 mt-4">
+            <SkillButton
+              disabled={skillPoints < 5 || animating}
+              skillPoints={skillPoints}
+              onUseSkill={handleSkill}
+            />
           </div>
         </div>
       </main>
 
+      {/* 勝敗画面 */}
       {resultState !== "none" && (
-        <div className="absolute inset-0 min-h-[100dvh] pointer-events-auto">
-          <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
-
-          <div className="relative z-10 flex flex-col items-center justify-center min-h-[100dvh] gap-6">
-            {resultState === "win" && showClear && <ClearAnimation />}
-
-            <p className="text-3xl font-bold text-white drop-shadow mb-4">
-              {endMessage}
-            </p>
-
-            <div className="flex flex-row gap-6">
-              {resultState === "win" && (
-                <button
-                  onClick={() => router.push("/")}
-                  className="px-7 py-3 bg-green-400 rounded-xl font-bold hover:scale-105 transition"
-                >
-                  ホーム
-                </button>
-              )}
-
-              {resultState === "lose" && (
-                <button
-                  onClick={resetAll}
-                  className="px-6 py-3 bg-pink-300 rounded-xl font-bold text-black hover:scale-105 transition"
-                >
-                  リセット
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <ResultOverlay
+          resultState={resultState}
+          showClear={showClear}
+          endMessage={endMessage}
+          onHome={() => router.push("/")}
+          onReset={resetAll}
+        />
       )}
     </div>
   );

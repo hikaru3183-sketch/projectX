@@ -26,7 +26,6 @@ export default function ClickGamePage() {
     coinEffect,
     showSuperFormal,
     showClearButton,
-
     handleClick,
     handleGacha,
     handleUseItem,
