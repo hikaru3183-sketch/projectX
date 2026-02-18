@@ -8,7 +8,7 @@ type Props = {
   currentStage: number;
 };
 
-const stages = ["初戦", "準決", "決勝", "優勝"];
+const stages = ["二戦戦", "準決勝", "決勝", "優勝"];
 
 export default function BracketUI({ show, currentStage }: Props) {
   return (

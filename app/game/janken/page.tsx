@@ -39,7 +39,7 @@ export default function JankenPage() {
   const [animating, setAnimating] = useState(false);
   const [showBracket, setShowBracket] = useState(false);
 
-  const stageLabels = ["初戦", "準決", "決勝", "🙌"];
+  const stageLabels = ["初戦", "二回戦", "準決勝", "決勝"];
   const stageBackgrounds = [
     "from-blue-900 to-black",
     "from-purple-900 to-black",

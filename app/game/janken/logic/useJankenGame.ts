@@ -79,6 +79,14 @@ export function useJankenGame() {
     }
   }, [currentStage]);
 
+  useEffect(() => {
+    if (cpuWin === 3) {
+      setEndMessage("残念…負けてしまった…");
+      setResultState("lose");
+      setShowClear(false);
+    }
+  }, [cpuWin]);
+
   // ★ ステージ進行は UI 側でやる（ここではやらない）
 
   const resetAll = () => {

@@ -46,7 +46,9 @@ export default function ClickGamePage() {
       <BgmController src="/sounds/click/clickbgm.mp3" />
 
       {/* ★ クリア演出（音つき） */}
-      <AnimatePresence>{showSuperFormal && <ClearAnimation />}</AnimatePresence>
+      <AnimatePresence>
+        {showSuperFormal && <ClearAnimation enableSound={true} />}
+      </AnimatePresence>
 
       <CoinDisplay coins={coins} />
 

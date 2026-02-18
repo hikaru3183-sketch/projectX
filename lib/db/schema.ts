@@ -31,3 +31,15 @@ export const scores = pgTable("scores", {
   value: integer("value").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// -----------------------------
+// Posts（掲示板）
+// -----------------------------
+export const posts = pgTable("posts", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => appUsers.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});

@@ -4,7 +4,11 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { playSound } from "@/components/sound/Sound";
 
-export const ClearAnimation = () => {
+export const ClearAnimation = ({
+  enableSound = true,
+}: {
+  enableSound?: boolean;
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesCount = 20;
 
@@ -18,7 +22,9 @@ export const ClearAnimation = () => {
     });
 
     // ★ 音ロジックを共通化
-    playSound("/sounds/clear.mp3");
+    if (enableSound) {
+      playSound("/sounds/clear.mp3");
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;

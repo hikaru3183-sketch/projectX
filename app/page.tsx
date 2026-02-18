@@ -18,6 +18,7 @@ export default function Home() {
   const [logoutSuccess, setLogoutSuccess] = useState(false);
   const [scores, setScores] = useState<any[]>([]);
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -79,22 +80,50 @@ export default function Home() {
 
   return (
     <>
-      <main className="min-h-dvh w-full overflow-x-hidden flex items-center justify-center bg-gray-100">
-        <div className="w-full min-h-dvh p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
-          {user && (
+      {/* メニューを開くボタン（1つにまとめました） */}
+      {user && (
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="fixed mt-1  left-1 z-50 bg-gray-800 text-white px-3 py-2 rounded-lg shadow font-bold hover:bg-gray-700 "
+        >
+          ☰
+        </button>
+      )}
+
+      {menuOpen && (
+        <div className="fixed top-14 left-1 z-50 bg-white border shadow-lg rounded-lg p-2 w-40">
+          <div className="flex flex-col gap-2">
+            {/* スコア */}
             <button
-              onClick={() => setModalType("menu")}
-              className="fixed top-3 left-3 z-50 bg-green-600 text-white px-3 py-2 rounded-lg shadow font-bold"
+              onClick={() => {
+                setModalType("menu");
+                setMenuOpen(false);
+              }}
+              className="w-full block bg-green-500 text-white px-3 py-2 rounded-md font-bold hover:bg-green-600"
             >
               スコア
             </button>
-          )}
 
+            {/* 掲示板（背景青、文字白を明示） */}
+            <button
+              onClick={() => {
+                router.push("/board");
+                setMenuOpen(false);
+              }}
+              className="w-full block bg-green-500 text-white px-3 py-2 rounded-md font-bold hover:bg-green-600"
+            >
+              掲示板
+            </button>
+          </div>
+        </div>
+      )}
+      <main className="min-h-dvh w-full overflow-x-hidden flex items-center justify-center bg-gray-100">
+        <div className="w-full min-h-dvh p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
           {modalType === "menu" && (
             <ScoreModal scores={scores} onClose={() => setModalType(null)} />
           )}
 
-          <h1 className="text-5xl font-bold text-center bg-green-50 px-6 py-6 rounded-md border-4 border-green-300">
+          <h1 className="text-5xl font-bold text-center mt-2 rounded-md  ">
             ホーム
           </h1>
 
@@ -162,7 +191,6 @@ export default function Home() {
           )}
         </div>
       </main>
-
       <footer className="w-full text-center text-sm text-gray-500 py-6">
         © {new Date().getFullYear()} HiNaTaKu-Px. Released under the MIT
         License.
