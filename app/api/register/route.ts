@@ -28,11 +28,9 @@ export async function POST(request: Request) {
 
     if (!result.ok) {
       if (result.error === "duplicate") {
-        return NextResponse.json(
-          { error: "このユーザーは既に存在します" },
-          { status: 409 },
-        );
+        return NextResponse.json({ error: "duplicate" }, { status: 409 });
       }
+
       return NextResponse.json(
         { error: "登録に失敗しました" },
         { status: 500 },

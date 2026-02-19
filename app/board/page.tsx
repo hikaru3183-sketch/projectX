@@ -1,13 +1,22 @@
 import { db } from "@/lib/db/db";
-import { posts } from "@/lib/db/schema";
+import { posts, appUsers } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { desc } from "drizzle-orm";
 
 export default async function BoardPage() {
-  const allPosts = await db.select().from(posts).orderBy(desc(posts.createdAt));
+  const allPosts = await db
+    .select({
+      id: posts.id,
+      content: posts.content,
+      createdAt: posts.createdAt,
+      userEmail: appUsers.email, // ← ここで JOIN した email を取得
+    })
+    .from(posts)
+    .leftJoin(appUsers, eq(posts.userId, appUsers.id))
+    .orderBy(desc(posts.createdAt));
 
   return (
-    <div className="min-h-screen   bg-green-200">
+    <div className="min-h-screen bg-green-50">
       <div className="pt-10 mb-6 flex justify-center">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-800">📝 掲示板</h1>
@@ -27,8 +36,10 @@ export default async function BoardPage() {
             key={p.id}
             className="bg-white border border-gray-300 rounded-lg shadow p-4 relative"
           >
-            {/* 吹き出しのピン */}
-            <div className="absolute -top-2 left-4 w-3 h-3 bg-red-500 rounded-full shadow"></div>
+            {/* 🔵 投稿者名（メールアドレス） */}
+            <p className="text-sm text-green-700 font-bold mb-2">
+              投稿者: {p.userEmail ?? "不明なユーザー"}
+            </p>
 
             {/* 投稿内容 */}
             <p className="text-gray-800 text-lg whitespace-pre-wrap">

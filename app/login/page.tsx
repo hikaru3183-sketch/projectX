@@ -42,11 +42,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-green-50">
+    <div className="min-h-screen  flex flex-col items-center justify-center bg-green-50">
       <AuthCard title="ログイン">
         <AuthInput
           type="email"
-          placeholder="メールアドレス"
+          placeholder="アカウント名"
           value={email}
           onChange={setEmail}
         />
@@ -58,7 +58,12 @@ export default function Login() {
         />
         <AuthButton label="ログイン" onClick={login} />
       </AuthCard>
-
+      <button
+        onClick={() => router.push("/register")}
+        className=" mt-5 px-5 py-3 text-base bg-sky-500 text-white font-bold rounded-lg shadow hover:bg-sky-600 transition"
+      >
+        アカウント作成
+      </button>
       {popup === "success" && (
         <Popup
           type="success"

@@ -76,11 +76,17 @@ export default function Home() {
       color: "bg-violet-500",
       desc: "集めて逃げろ。",
     },
+    {
+      key: "x",
+      label: "開発中",
+      href: "/game/x",
+      color: "bg-gray-500",
+      desc: "待っててね。",
+    },
   ];
 
   return (
     <>
-      {/* メニューを開くボタン（1つにまとめました） */}
       {user && (
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -93,7 +99,11 @@ export default function Home() {
       {menuOpen && (
         <div className="fixed top-14 left-1 z-50 bg-white border shadow-lg rounded-lg p-2 w-40">
           <div className="flex flex-col gap-2">
-            {/* スコア */}
+            {user && (
+              <p className="text-xl font-bold text-center text-green-700 px-2 py-1 border-b">
+                {user.email}
+              </p>
+            )}
             <button
               onClick={() => {
                 setModalType("menu");
@@ -104,7 +114,6 @@ export default function Home() {
               スコア
             </button>
 
-            {/* 掲示板（背景青、文字白を明示） */}
             <button
               onClick={() => {
                 router.push("/board");
@@ -114,20 +123,60 @@ export default function Home() {
             >
               掲示板
             </button>
+
+            {user && (
+              <button
+                onClick={() => {
+                  setModalType("logout");
+                  setMenuOpen(false);
+                }}
+                className="w-full block bg-red-500 text-white px-3 py-2 rounded-md font-bold hover:bg-red-600"
+              >
+                ログアウト
+              </button>
+            )}
           </div>
         </div>
       )}
+      {modalType === "reset" && (
+        <ConfirmModal
+          type="reset"
+          onConfirm={() => {
+            localStorage.clear();
+            window.location.reload();
+          }}
+          onCancel={() => setModalType(null)}
+        />
+      )}
+
+      {modalType === "logout" && (
+        <ConfirmModal
+          type="logout"
+          onConfirm={handleLogout} // ここで handleLogout を呼ぶ
+          onCancel={() => setModalType(null)}
+        />
+      )}
+
+      {logoutSuccess && (
+        <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />
+      )}
       <main className="min-h-dvh w-full overflow-x-hidden flex items-center justify-center bg-gray-100">
-        <div className="w-full min-h-dvh p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
+        <div className="w-full p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
           {modalType === "menu" && (
             <ScoreModal scores={scores} onClose={() => setModalType(null)} />
           )}
 
-          <h1 className="text-5xl font-bold text-center mt-2 rounded-md  ">
-            ホーム
-          </h1>
+          <div className="relative w-full ">
+            {/* 左側に固定配置 */}
+            <div className="absolute left-2 ">
+              <UserStatusBar user={user} />
+            </div>
 
-          <UserStatusBar user={user} />
+            {/* 中央タイトル */}
+            <h1 className="text-5xl font-bold text-center mt-2 rounded-md">
+              ホーム
+            </h1>
+          </div>
 
           <SectionBox>
             <h1 className="text-3xl font-extrabold text-center mb-2">
@@ -154,41 +203,9 @@ export default function Home() {
                 >
                   データ消去
                 </button>
-
-                {user && (
-                  <button
-                    onClick={() => setModalType("logout")}
-                    className="px-3 py-2 bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition"
-                  >
-                    ログアウト
-                  </button>
-                )}
               </div>
             </div>
           </SectionBox>
-
-          {modalType === "reset" && (
-            <ConfirmModal
-              type="reset"
-              onConfirm={() => {
-                localStorage.clear();
-                window.location.reload();
-              }}
-              onCancel={() => setModalType(null)}
-            />
-          )}
-
-          {modalType === "logout" && (
-            <ConfirmModal
-              type="logout"
-              onConfirm={handleLogout} // ここで handleLogout を呼ぶ
-              onCancel={() => setModalType(null)}
-            />
-          )}
-
-          {logoutSuccess && (
-            <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />
-          )}
         </div>
       </main>
       <footer className="w-full text-center text-sm text-gray-500 py-6">

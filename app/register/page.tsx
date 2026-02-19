@@ -56,16 +56,18 @@ export default function RegisterPage() {
       <AuthCard title="アカウント作成">
         <AuthInput
           type="email"
-          placeholder="メールアドレス"
+          placeholder="アカウント名"
           value={email}
           onChange={setEmail}
         />
+
         <AuthInput
           type="password"
           placeholder="パスワード"
           value={password}
           onChange={setPassword}
         />
+
         <AuthButton label="登録" color="sky" onClick={handleRegister} />
       </AuthCard>
 
@@ -88,7 +90,7 @@ export default function RegisterPage() {
       {popup === "duplicate" && (
         <Popup
           type="duplicate"
-          message="このメールアドレスは既に使われています"
+          message="このアカウントは既に使われています"
           color="yellow"
           onClose={() => setPopup(null)}
         />
