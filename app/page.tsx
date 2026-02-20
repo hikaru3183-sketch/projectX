@@ -106,14 +106,14 @@ export default function Home() {
       {user && (
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="fixed mt-1  left-1 z-50 bg-gray-800 text-white px-3 py-2 rounded-lg shadow font-bold hover:bg-gray-700 "
+          className="fixed mt-4  left-5 z-50 bg-gray-800 text-white px-4 py-3 rounded-lg shadow font-bold hover:bg-gray-700 "
         >
           ☰
         </button>
       )}
 
       {menuOpen && (
-        <div className="fixed top-14 left-1 z-50 bg-white border shadow-lg rounded-lg p-2 w-40">
+        <div className="fixed top-18 left-1 z-50 bg-white border shadow-lg rounded-lg p-2 w-40">
           <div className="flex flex-col gap-2">
             {user && (
               <p className="text-xl font-bold text-center text-green-700 px-2 py-1 border-b">
