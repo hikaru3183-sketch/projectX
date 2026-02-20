@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { GameLogic } from "./GameLogic";
+import { playSound } from "@/components/sound/Sound";
 
 export function useHockeyGame() {
   const logicRef = useRef<GameLogic | null>(null);
@@ -17,12 +18,53 @@ export function useHockeyGame() {
   const wallPool = useRef<HTMLAudioElement[]>([]);
   const hitIndex = useRef(0);
   const wallIndex = useRef(0);
-
   const goalHighSE = useRef<HTMLAudioElement | null>(null);
   const goalLowSE = useRef<HTMLAudioElement | null>(null);
 
-  // requestAnimationFrame ID
   const frameRef = useRef<number | null>(null);
+
+  // --- DB保存用関数 ---
+  const saveHighScore = async (score: number) => {
+    try {
+      await fetch("/api/highscore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game: "hockey",
+          value: score,
+        }),
+      });
+      console.log("Score saved:", score);
+    } catch (error) {
+      console.error("Error saving high score:", error);
+    }
+  };
+
+  // --- 共通のSE再生処理 ---
+  const playHitSE = useCallback(() => {
+    const audio = hitPool.current[hitIndex.current];
+    audio.currentTime = 0;
+    audio.play();
+    hitIndex.current = (hitIndex.current + 1) % hitPool.current.length;
+  }, []);
+
+  const playWallSE = useCallback(() => {
+    const audio = wallPool.current[wallIndex.current];
+    audio.currentTime = 0;
+    audio.play();
+    wallIndex.current = (wallIndex.current + 1) % wallPool.current.length;
+  }, []);
+
+  // --- ゴール時の処理（ここでは音とUI表示のみ） ---
+  const handleGoal = useCallback((type: "win" | "lose") => {
+    if (type === "win") {
+      playSound("/sounds/win.mp3", 1); // 勝ち音
+    } else {
+      playSound("/sounds/lose.mp3", 1); // 負け音
+    }
+
+    setShowReset(true);
+  }, []);
 
   // 向きチェック
   useEffect(() => {
@@ -43,26 +85,18 @@ export function useHockeyGame() {
       () => new Audio("/sounds/hockey/pom.mp3"),
     );
 
-    goalHighSE.current = new Audio("/sounds/win.mp3");
-    goalLowSE.current = new Audio("/sounds/lose.mp3");
-
     return () => {
-      [...hitPool.current, ...wallPool.current].forEach((a) => {
-        a.pause();
-        a.currentTime = 0;
-        a.src = "";
+      [
+        ...hitPool.current,
+        ...wallPool.current,
+        goalHighSE.current,
+        goalLowSE.current,
+      ].forEach((a) => {
+        if (a) {
+          a.pause();
+          a.src = "";
+        }
       });
-
-      if (goalHighSE.current) {
-        goalHighSE.current.pause();
-        goalHighSE.current.currentTime = 0;
-        goalHighSE.current.src = "";
-      }
-      if (goalLowSE.current) {
-        goalLowSE.current.pause();
-        goalLowSE.current.currentTime = 0;
-        goalLowSE.current.src = "";
-      }
     };
   }, []);
 
@@ -71,119 +105,83 @@ export function useHockeyGame() {
     const field = fieldRef.current;
     if (!field) return;
 
-    const width = field.clientWidth;
-    const height = field.clientHeight;
-
     logicRef.current = new GameLogic(
-      width,
-      height,
+      field.clientWidth,
+      field.clientHeight,
       4,
       1.0,
       isPortrait,
-      (type) => {
-        if (type === "high") goalHighSE.current?.play();
-        else goalLowSE.current?.play();
-        setShowReset(true);
-      },
-      () => {
-        const audio = hitPool.current[hitIndex.current];
-        audio.currentTime = 0;
-        audio.play();
-        hitIndex.current = (hitIndex.current + 1) % hitPool.current.length;
-      },
-      () => {
-        const audio = wallPool.current[wallIndex.current];
-        audio.currentTime = 0;
-        audio.play();
-        wallIndex.current = (wallIndex.current + 1) % wallPool.current.length;
-      },
+      handleGoal,
+      playHitSE,
+      playWallSE,
     );
 
     setStarted(true);
 
     const loop = () => {
-      const logic = logicRef.current;
-      if (!logic) return;
-
-      const result = logic.update();
-      if (result === "reset") setShowReset(true);
-
+      if (!logicRef.current) return;
+      logicRef.current.update();
       setTick((t) => t + 1);
       frameRef.current = requestAnimationFrame(loop);
     };
-
     loop();
   };
 
-  // リセット
   const resetGame = () => {
-    const field = fieldRef.current;
-    if (!field) return;
+    const logic = logicRef.current;
+    if (!logic || !fieldRef.current) return;
 
-    const width = field.clientWidth;
-    const height = field.clientHeight;
+    // 1. 今回の最高記録を保存
+    if (logic.maxReflectCount > 0) {
+      saveHighScore(logic.maxReflectCount);
+    }
 
-    const prevMax = logicRef.current?.maxReflectCount ?? 0;
+    // 2. reflectCount だけリセット（maxReflectCount はリセットしない）
+    logic.reflectCount = 0;
+    logic.isGameOver = false;
 
-    const newLogic = new GameLogic(
-      width,
-      height,
-      4,
-      1.0,
-      isPortrait,
-      (type) => {
-        if (type === "high") goalHighSE.current?.play();
-        else goalLowSE.current?.play();
-        setShowReset(true);
-      },
-      () => {
-        const audio = hitPool.current[hitIndex.current];
-        audio.currentTime = 0;
-        audio.play();
-        hitIndex.current = (hitIndex.current + 1) % hitPool.current.length;
-      },
-      () => {
-        const audio = wallPool.current[wallIndex.current];
-        audio.currentTime = 0;
-        audio.play();
-        wallIndex.current = (wallIndex.current + 1) % wallPool.current.length;
-      },
-    );
+    // 3. ラウンドのリセット（パックの位置や速度の初期化）
+    logic.resetRound(true);
 
-    newLogic.maxReflectCount = prevMax;
-    newLogic.resetRound(true);
-
-    logicRef.current = newLogic;
+    // 4. UIの状態を戻す
     setShowReset(false);
     setTick((t) => t + 1);
+  };
+  const backGame = () => {
+    const logic = logicRef.current;
+    if (!logic) return;
+
+    // ★ ここでスコア保存
+    if (logic.maxReflectCount > 0) {
+      saveHighScore(logic.maxReflectCount);
+    }
+
+    // UI を閉じるだけ
+    setShowReset(false);
   };
 
   // 操作
   const handleMove = (e: React.MouseEvent) => {
-    const logic = logicRef.current;
-    if (!logic || !fieldRef.current) return;
+    if (!logicRef.current || !fieldRef.current) return;
     const rect = fieldRef.current.getBoundingClientRect();
-    const pos = isPortrait ? e.clientX - rect.left : e.clientY - rect.top;
-    logic.movePlayer(pos);
+    logicRef.current.movePlayer(
+      isPortrait ? e.clientX - rect.left : e.clientY - rect.top,
+    );
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    const logic = logicRef.current;
-    if (!logic || !fieldRef.current) return;
-    const touch = e.touches[0];
+    if (!logicRef.current || !fieldRef.current) return;
     const rect = fieldRef.current.getBoundingClientRect();
-    const pos = isPortrait
-      ? touch.clientX - rect.left
-      : touch.clientY - rect.top;
-    logic.movePlayer(pos);
+    logicRef.current.movePlayer(
+      isPortrait
+        ? e.touches[0].clientX - rect.left
+        : e.touches[0].clientY - rect.top,
+    );
   };
 
-  // クリーンアップ
   useEffect(() => {
     return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
-      }
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       logicRef.current = null;
     };
   }, []);
@@ -197,5 +195,6 @@ export function useHockeyGame() {
     resetGame,
     handleMove,
     handleTouchMove,
+    backGame,
   };
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 
 export function useClickGame() {
-  const [coins, setCoins] = useState<number | null>(null);
+  const [coins, setCoins] = useState<number>(0);
   const [items, setItems] = useState<(string | null)[]>(Array(7).fill(null));
   const [stockItems, setStockItems] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
@@ -13,21 +13,66 @@ export function useClickGame() {
   const [showClearButton, setShowClearButton] = useState(false);
 
   const effectIdRef = useRef(0);
+  const coinsRef = useRef(0);
 
-  // 初期コイン読み込み
+  // -----------------------------
+  // ★ ログインユーザー情報
+  // -----------------------------
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isLoggedIn = !!user?.id;
+
+  // -----------------------------
+  // ★ 1. ログインしている場合だけ DB から読み込む
+  // -----------------------------
   useEffect(() => {
-    const saved = localStorage.getItem("coins");
-    setCoins(saved ? JSON.parse(saved) : 10000);
+    const loadData = async () => {
+      if (!isLoggedIn) return; // ← ゲストは読み込まない
+
+      const res = await fetch(`/api/user/${user.id}`);
+      const data = await res.json();
+
+      setCoins(data.coins ?? 0);
+      setItems(JSON.parse(data.items ?? "[]"));
+      setStockItems(JSON.parse(data.stockItems ?? "{}"));
+    };
+
+    loadData();
   }, []);
 
-  // コイン保存
+  // coins が変わるたびに ref に反映
   useEffect(() => {
-    if (coins !== null) {
-      localStorage.setItem("coins", JSON.stringify(coins));
-    }
+    coinsRef.current = coins;
   }, [coins]);
 
-  // コインクリック
+  // -----------------------------
+  // ★ 2. ログインしている場合だけ保存する
+  // -----------------------------
+  useEffect(() => {
+    if (!isLoggedIn) return; // ← ゲストは保存しない
+
+    const saveOnLeave = () => {
+      const payload = JSON.stringify({
+        userId: user.id,
+        coins: coinsRef.current,
+        items,
+        stockItems,
+      });
+
+      const blob = new Blob([payload], { type: "application/json" });
+      navigator.sendBeacon("/api/click/save", blob);
+    };
+
+    window.addEventListener("beforeunload", saveOnLeave);
+
+    return () => {
+      saveOnLeave();
+      window.removeEventListener("beforeunload", saveOnLeave);
+    };
+  }, [items, stockItems, isLoggedIn]);
+
+  // -----------------------------
+  // ★ 3. クリック
+  // -----------------------------
   const getRandomAmount = () => {
     const r = Math.random();
     if (r < 0.7) return 1;
@@ -38,7 +83,7 @@ export function useClickGame() {
 
   const handleClick = () => {
     const amount = getRandomAmount();
-    setCoins((prev) => (prev ?? 0) + amount);
+    setCoins((prev) => prev + amount);
 
     setCoinEffect({
       id: effectIdRef.current++,
@@ -48,7 +93,9 @@ export function useClickGame() {
     });
   };
 
-  // ガチャ
+  // -----------------------------
+  // ★ 4. ガチャ
+  // -----------------------------
   const gachaItems = ["💡ノーマル", "✨レア", "🎇ウルトラ", "🎆レジェンド"];
 
   const getRandomItem = () => {
@@ -61,9 +108,7 @@ export function useClickGame() {
 
   const handleGacha = (count: number) => {
     const cost = 500 * count;
-    if ((coins ?? 0) < cost) {
-      return showMessage("コインが足りません！");
-    }
+    if (coins < cost) return showMessage("コインが足りません！");
 
     const newItems = [...items];
     const newStock = { ...stockItems };
@@ -81,7 +126,7 @@ export function useClickGame() {
 
     setItems(newItems);
     setStockItems(newStock);
-    setCoins((prev) => (prev ?? 0) - cost);
+    setCoins(coins - cost);
 
     const ORDER = ["💡ノーマル", "✨レア", "🎇ウルトラ", "🎆レジェンド"];
 
@@ -97,7 +142,9 @@ export function useClickGame() {
     showMessage(`${count}連結果：${formatted}`);
   };
 
-  // アイテム使用
+  // -----------------------------
+  // ★ 5. アイテム使用
+  // -----------------------------
   const itemCoinValues: Record<string, number> = {
     "💡ノーマル": 100,
     "✨レア": 500,
@@ -115,7 +162,7 @@ export function useClickGame() {
     if (newStock[itemName] === 0) delete newStock[itemName];
 
     setStockItems(newStock);
-    setCoins((prev) => (prev ?? 0) + value);
+    setCoins(coins + value);
 
     showMessage(`${itemName} を使用して +${value} コイン獲得！`);
   };
@@ -125,27 +172,28 @@ export function useClickGame() {
     for (const name in stockItems) {
       total += (itemCoinValues[name] || 0) * stockItems[name];
     }
+
     setStockItems({});
-    setCoins((prev) => (prev ?? 0) + total);
+    setCoins(coins + total);
+
     showMessage(`全アイテムを使用して +${total} コイン獲得！`);
   };
 
   // -----------------------------
-  // ★ 修正版 showMessage（ここが重要）
+  // ★ 6. メッセージ表示
   // -----------------------------
   const showMessage = (text: string) => {
     setMessage(text);
-
-    // 一度 false にしてリセット
     setVisible(false);
 
-    // 少し遅らせて true にする
     setTimeout(() => {
       setVisible(true);
     }, 20);
   };
 
-  // クリア
+  // -----------------------------
+  // ★ 7. クリア演出
+  // -----------------------------
   const handleClear = () => {
     setShowSuperFormal(true);
 

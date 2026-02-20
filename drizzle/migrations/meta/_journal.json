@@ -43,6 +43,20 @@
       "when": 1771425817830,
       "tag": "0005_mature_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771606426026,
+      "tag": "0006_colossal_millenium_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771609289058,
+      "tag": "0007_ambitious_warbound",
+      "breakpoints": true
     }
   ]
 }

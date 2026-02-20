@@ -16,7 +16,7 @@ export function UserStatusBar({ user }: Props) {
           <div className="flex gap-4 mt-0">
             <button
               onClick={() => router.push("/login")}
-              className="px-5 py-3 text-base bg-green-500 text-white font-bold rounded-lg shadow hover:bg-green-600 transition"
+              className="px-4 py-2 text-base bg-green-500 text-white font-bold rounded-lg shadow hover:bg-green-600 transition"
             >
               ログイン
             </button>

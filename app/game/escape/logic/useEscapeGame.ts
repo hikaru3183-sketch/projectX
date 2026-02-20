@@ -19,6 +19,33 @@ export function useEscapeGame() {
     item: { x: 0, y: 0 },
   });
 
+  // ★ ハイスコア保存済みかどうか
+  const savedRef = useRef(false);
+
+  // DB 保存関数
+  const saveHighScore = async (value: number) => {
+    try {
+      await fetch("/api/highscore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game: "escape",
+          value,
+        }),
+      });
+      console.log("High score saved:", value);
+    } catch (e) {
+      console.error("Error saving high score:", e);
+    }
+  };
+  const backGame = () => {
+    // ★ ゲームオーバー前でも maxScore を保存したい場合
+    if (!savedRef.current && maxScore > 0) {
+      savedRef.current = true;
+      saveHighScore(maxScore);
+    }
+  };
+
   const dist = (a: any, b: any) =>
     Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
@@ -35,6 +62,7 @@ export function useEscapeGame() {
       },
     };
 
+    savedRef.current = false; // ★ 次のゲーム用にフラグを戻す
     setScore(0);
     setGameOver(false);
   };
@@ -55,7 +83,7 @@ export function useEscapeGame() {
     return () => window.removeEventListener("resize", resize);
   }, []);
 
-  // ★★★★★ PC マウス操作を追加 ★★★★★
+  // PC マウス操作
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -75,7 +103,7 @@ export function useEscapeGame() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [running, gameOver]);
 
-  // スティック操作（スマホ用）
+  // スティック操作（スマホ）
   const handleStickMove = (e: any) => {
     const touch = e.touches[0];
     const area = (e.target as HTMLElement).getBoundingClientRect();
@@ -111,7 +139,7 @@ export function useEscapeGame() {
     }
   };
 
-  // ゲームループ（元のまま）
+  // ゲームループ
   useEffect(() => {
     if (!running) return;
 
@@ -136,7 +164,7 @@ export function useEscapeGame() {
         if (keys["ArrowUp"]) s.player.y -= speed;
         if (keys["ArrowDown"]) s.player.y += speed;
 
-        // スティック操作（スマホ）
+        // スティック操作
         const sensitivity = 1.0;
         s.player.x += stick.current.x * speed * sensitivity;
         s.player.y += stick.current.y * speed * sensitivity;
@@ -166,8 +194,12 @@ export function useEscapeGame() {
           s.item.y = Math.random() * (HEIGHT - 100) + 50;
         }
 
-        // 敵に当たったら終了
-        if (dist(s.player, s.enemy) < 30) {
+        // 敵に当たったら終了 → ハイスコア保存（1回だけ）
+        if (dist(s.player, s.enemy) < 15) {
+          if (!savedRef.current) {
+            savedRef.current = true;
+            saveHighScore(maxScore);
+          }
           setGameOver(true);
         }
       }
@@ -203,7 +235,11 @@ export function useEscapeGame() {
     };
 
     loop();
-  }, [running, gameOver]);
+
+    return () => {
+      if (loopRef.current) cancelAnimationFrame(loopRef.current);
+    };
+  }, [running, gameOver, maxScore]);
 
   return {
     canvasRef,
@@ -215,5 +251,6 @@ export function useEscapeGame() {
     reset,
     handleStickMove,
     handleStickEnd,
+    backGame,
   };
 }

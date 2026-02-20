@@ -85,6 +85,22 @@ export default function Home() {
     },
   ];
 
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const res = await fetch("/api/score");
+        if (res.ok) {
+          const data = await res.json();
+          setScores(data);
+        }
+      } catch (e) {
+        console.error("スコア取得失敗:", e);
+      }
+    };
+
+    fetchScores();
+  }, []);
+
   return (
     <>
       {user && (
@@ -166,11 +182,22 @@ export default function Home() {
             <ScoreModal scores={scores} onClose={() => setModalType(null)} />
           )}
 
-          <div className="relative w-full ">
+          <div className="relative w-full">
             {/* 左側に固定配置 */}
-            <div className="absolute left-2 ">
+            <div className="absolute left-2 top-1">
               <UserStatusBar user={user} />
             </div>
+
+            {/* 右側にランキングボタン */}
+            <button
+              onClick={() => {
+                router.push("/ranking");
+                setMenuOpen(false);
+              }}
+              className="absolute right-2 top-1 bg-green-500 text-white px-3 py-2 rounded-md font-bold hover:bg-green-600"
+            >
+              ランキング
+            </button>
 
             {/* 中央タイトル */}
             <h1 className="text-5xl font-bold text-center mt-2 rounded-md">

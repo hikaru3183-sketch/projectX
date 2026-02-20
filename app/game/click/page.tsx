@@ -12,8 +12,7 @@ import { CoinEffect } from "@/components/click/CoinEffect";
 import MessageBox from "@/components/click/MessageBox";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-
-import { BgmController } from "@/components/click/BgmController"; // ★ 追加
+import { BgmController } from "@/components/click/BgmController";
 
 export default function ClickGamePage() {
   const router = useRouter();
@@ -34,6 +33,17 @@ export default function ClickGamePage() {
     setCoinEffect,
   } = useClickGame();
 
+  // -----------------------------
+  // ★ coins がまだロードされていない時の表示
+  // -----------------------------
+  if (coins === null || coins === undefined) {
+    return (
+      <main className="w-full min-h-[100dvh] flex items-center justify-center text-xl">
+        読み込み中...
+      </main>
+    );
+  }
+
   const ORDER = ["💡ノーマル", "✨レア", "🎇ウルトラ", "🎆レジェンド"];
 
   const sortedItems: [string, number][] = ORDER.filter(
@@ -42,10 +52,8 @@ export default function ClickGamePage() {
 
   return (
     <main className="w-full min-h-[100dvh] p-4 border-4 border-yellow-300 rounded-2xl shadow-2xl bg-white">
-      {/* ★ BGM をここで再生 */}
       <BgmController src="/sounds/click/clickbgm.mp3" />
 
-      {/* ★ クリア演出（音つき） */}
       <AnimatePresence>
         {showSuperFormal && <ClearAnimation enableSound={true} />}
       </AnimatePresence>
@@ -53,7 +61,6 @@ export default function ClickGamePage() {
       <CoinDisplay coins={coins} />
 
       <div className="text-center">
-        {/* ★ クリック音は ClickButton 内で鳴る */}
         <ClickButton onClick={handleClick} />
 
         <CoinEffect
@@ -68,14 +75,13 @@ export default function ClickGamePage() {
         onUseAll={useAllItemsAllTypes}
       />
 
-      <GachaPanel currentCoins={coins ?? 0} handleGacha={handleGacha} />
+      <GachaPanel currentCoins={coins} handleGacha={handleGacha} />
 
       <div className="text-[10px] px-6 max-w-md mx-auto mt-2">
-        <ClearButton safeCoins={coins ?? 0} onClear={handleClear} />
+        <ClearButton safeCoins={coins} onClear={handleClear} />
       </div>
 
       <div className="text-center text-xs text-gray-700 mt-4 h-16">
-        {/* ★ visible を正しく渡す */}
         <MessageBox message={message} visible={visible} duration={3} />
       </div>
 
