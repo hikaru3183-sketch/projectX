@@ -47,9 +47,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
-      kaboom:
-        specifier: ^3000.1.17
-        version: 3000.1.17
+      kaplay:
+        specifier: ^3001.0.19
+        version: 3001.0.19
       lucia:
         specifier: ^3.2.2
         version: 3.2.2
@@ -2239,9 +2239,9 @@ packages:
   jws@4.0.1:
     resolution: {integrity: sha512-EKI/M/yqPncGUUh44xz0PxSidXFr/+r0pA70+gIYhjv+et7yxM+s29Y+VGDkovRofQem0fs7Uvf4+YmAdyRduA==}
 
-  kaboom@3000.1.17:
-    resolution: {integrity: sha512-npAtjGxj9Oj9vLpXfURck9eUPHR2ac1Lhc1bNcZ0NWcs+Lgs40Ty+wjujv1C2DwjWvxaX+3r2G64M35BS/Ry2g==}
-    deprecated: Kaboom is no longer maintained. Please use KAPLAY, the new game library built as its successor, by its developers.
+  kaplay@3001.0.19:
+    resolution: {integrity: sha512-T8GdXGXvgv/vbYVA1lcHzuDNVhp3juOJJE8OZs0vR5MdGNElBvANEeTSnqAAhJpSXtNxpeNy29pqkok3RnXKtg==}
+    engines: {node: '>=20.0.0'}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -4947,7 +4947,7 @@ snapshots:
       jwa: 2.0.1
       safe-buffer: 5.2.1
 
-  kaboom@3000.1.17: {}
+  kaplay@3001.0.19: {}
 
   keyv@4.5.4:
     dependencies:
