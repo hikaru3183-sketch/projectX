@@ -135,10 +135,10 @@ export default function Home() {
     },
     {
       key: "x",
-      label: "開発中",
+      label: "カジノ",
       href: "/game/x",
       color: "bg-gray-500",
-      desc: "待っててね。",
+      desc: "運も実力、ギャンブル。",
     },
   ];
 

@@ -1,51 +1,25 @@
-"use client";
+// app/game/x/page.tsx
+import { getGameStats } from "./actions";
+import GamePageClient from "./GamePageClient";
+import { redirect } from "next/navigation";
+import { validateRequest } from "@/lib/auth/lucia";
 
-import GameCanvas from "./GameCanvas";
-import { HighLowEffect } from "./highlow/HighLowEffect";
-export default function GamePage() {
+export default async function GamePage() {
+  // 認証チェック
+  const { user } = await validateRequest();
+  if (!user) {
+    redirect("/login"); // ログインしていない場合は飛ばす（任意）
+  }
+
+  // actions.ts で定義した関数を呼び出して、コインとスコアを一括取得
+  const stats = await getGameStats();
+
+  // 万が一取得に失敗した場合のフォールバック
+  const initialCoins = stats.ok ? stats.coins : 0;
+  const initialScores = stats.ok ? stats.scores : [];
+
+  // クライアント側へ「コイン」と「全ゲームのハイスコアリスト」を渡す
   return (
-    <main
-      style={{
-        width: "100vw",
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#1a1a1a",
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: "95%",
-          maxWidth: "640px",
-          aspectRatio: "4 / 3",
-          border: "4px solid #333",
-          borderRadius: "12px",
-          overflow: "hidden",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-          touchAction: "none",
-        }}
-      >
-        {/* 背景：KAPLAY (カード本体) */}
-        <GameCanvas />
-
-        {/* 前景：PixiJS (キラキラ演出) */}
-        <HighLowEffect />
-
-        <div
-          style={{
-            position: "absolute",
-            bottom: "10px",
-            width: "100%",
-            textAlign: "center",
-            color: "white",
-            fontFamily: "sans-serif",
-            pointerEvents: "none",
-            textShadow: "1px 1px 2px black",
-          }}
-        ></div>
-      </div>
-    </main>
+    <GamePageClient initialCoins={initialCoins} initialScores={initialScores} />
   );
 }
