@@ -1,76 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-import { SectionBox } from "@/components/home/SectionBox";
+// デザイン・コンポーネント
+import { GameIsland } from "@/components/home/GameIsland";
+import { OceanBackground } from "@/components/home/OceanBackground";
 import { ScoreModal } from "@/components/home/ScoreModal";
 import { LogoutSuccessModal } from "@/components/home/LogoutSuccessModal";
-import { GameCard } from "@/components/home/GameCard";
-import { UserStatusBar } from "@/components/home/UserStatusBar";
 import { DeleteAccountSuccessModal } from "@/components/home/DeleteAccountSuccessModal";
-
 import { AvatarButton } from "@/components/home/AvatarButton";
 import { UserMenu } from "@/components/home/UserMenu";
 import { AvatarModal } from "@/components/home/AvatarModal";
 import { ConfirmModal } from "@/components/home/ConfirmModal";
 
+// アイコン
+import { Hand, Gamepad2, Target, Zap, Dice1, LogIn } from "lucide-react";
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
-  const [modalType, setModalType] = useState<
-    | "reset"
-    | "logout"
-    | "menu"
-    | "avatar"
-    | "deleteAccount"
-    | "deletePost"
-    | null
-  >(null);
-
-  const [logoutSuccess, setLogoutSuccess] = useState(false);
   const [scores, setScores] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutSuccess, setLogoutSuccess] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [modalType, setModalType] = useState<
+    "reset" | "logout" | "menu" | "avatar" | "deleteAccount" | null
+  >(null);
 
   const router = useRouter();
 
-  // ★ ログインユーザー取得
+  // 1. データのフェッチ
   useEffect(() => {
-    const loadUser = async () => {
-      const res = await fetch("/api/me");
-      const data = await res.json();
-      setUser(data.user);
-    };
-    loadUser();
-  }, []);
-
-  // ★ スコア取得
-  useEffect(() => {
-    const fetchScores = async () => {
+    let isMounted = true;
+    const loadInitialData = async () => {
       try {
-        const res = await fetch("/api/score");
-        if (res.ok) {
-          const data = await res.json();
-          setScores(data);
+        const [userRes, scoreRes] = await Promise.all([
+          fetch("/api/me"),
+          fetch("/api/score"),
+        ]);
+        const userData = await userRes.json();
+        if (isMounted) {
+          setUser(userData.user);
+          if (scoreRes.ok) setScores(await scoreRes.json());
         }
       } catch (e) {
-        console.error("スコア取得失敗:", e);
+        console.error("取得失敗:", e);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     };
-
-    fetchScores();
+    loadInitialData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // ★ Avatar 型
-  type Avatar = {
-    mode: "color" | "image";
-    hair?: string;
-    clothes?: string;
-    bg?: string;
-    image?: string;
-  };
-
-  // ★ ログアウト
+  // --- 修正箇所: 足りなかったハンドラー関数を追加 ---
   const handleLogout = async () => {
     try {
       const res = await fetch("/api/logout", { method: "POST" });
@@ -85,7 +71,6 @@ export default function Home() {
     }
   };
 
-  // ★ アカウント削除
   const handleDeleteAccount = async () => {
     try {
       const res = await fetch("/api/delete-account", { method: "POST" });
@@ -98,53 +83,65 @@ export default function Home() {
       console.error("アカウント削除失敗:", err);
     }
   };
+  // ----------------------------------------------
 
-  // ★ 投稿削除（必要なら）
-  const handleDeletePost = async () => {
-    console.log("投稿削除処理を書く");
-  };
-
-  const games = [
-    {
-      key: "click",
-      label: "クリック",
-      href: "/game/click",
-      color: "bg-yellow-500",
-      desc: "押して、当てて、貯めて。",
-    },
-    {
-      key: "janken",
-      label: "ジャンケン",
-      href: "/game/janken",
-      color: "bg-pink-500",
-      desc: "勝ち進んで、優勝。",
-    },
-    {
-      key: "hockey",
-      label: "ホッケー",
-      href: "/game/hockey",
-      color: "bg-indigo-500",
-      desc: "自分を超えろ。",
-    },
-    {
-      key: "escape",
-      label: "エスケープ",
-      href: "/game/escape",
-      color: "bg-violet-500",
-      desc: "集めて逃げろ。",
-    },
-    {
-      key: "x",
-      label: "カジノ",
-      href: "/game/x",
-      color: "bg-gray-500",
-      desc: "運も実力、ギャンブル。",
-    },
-  ];
+  const games = useMemo(
+    () => [
+      {
+        key: "click",
+        label: "クリック島",
+        href: "/game/click",
+        color: "bg-gradient-to-br from-yellow-400 to-orange-500",
+        desc: "押して、当てて、貯めて。",
+        icon: <Hand className="w-10 h-10" />,
+      },
+      {
+        key: "janken",
+        label: "ジャンケン島",
+        href: "/game/janken",
+        color: "bg-gradient-to-br from-pink-400 to-red-500",
+        desc: "勝ち進んで、優勝。",
+        icon: <Gamepad2 className="w-10 h-10" />,
+      },
+      {
+        key: "hockey",
+        label: "ホッケー島",
+        href: "/game/hockey",
+        color: "bg-gradient-to-br from-indigo-400 to-cyan-500",
+        desc: "自分を超えろ。",
+        icon: <Target className="w-10 h-10" />,
+      },
+      {
+        key: "escape",
+        label: "エスケープ島",
+        href: "/game/escape",
+        color: "bg-gradient-to-br from-violet-400 to-purple-500",
+        desc: "集めて逃げろ。",
+        icon: <Zap className="w-10 h-10" />,
+      },
+      {
+        key: "casino",
+        label: "カジノ島",
+        href: "/game/x",
+        color: "bg-gradient-to-br from-gray-500 to-zinc-700",
+        desc: "運も実力、ギャンブル。",
+        icon: <Dice1 className="w-10 h-10" />,
+      },
+    ],
+    [],
+  );
 
   return (
-    <>
-      {/* ★ 成功モーダル */}
+    <main className="fixed inset-0 w-full h-dvh bg-[#080812] overflow-hidden touch-none flex flex-col">
+      {/* 背景を最背面に固定 */}
+      <div className="absolute inset-0 -z-10">
+        <OceanBackground />
+      </div>
+
+      {/* モーダル群 (変更なし) */}
+      {logoutSuccess && (
+        <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />
+      )}
       {deleteSuccess && (
         <DeleteAccountSuccessModal
           onClose={() => {
@@ -153,123 +150,102 @@ export default function Home() {
           }}
         />
       )}
-
-      {logoutSuccess && (
-        <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />
+      {modalType === "menu" && (
+        <ScoreModal scores={scores} onClose={() => setModalType(null)} />
+      )}
+      <AvatarModal
+        open={modalType === "avatar"}
+        user={user}
+        onClose={() => setModalType(null)}
+        onSave={async (newAvatar: any) => {
+          await fetch("/api/avatar", {
+            method: "POST",
+            body: JSON.stringify(newAvatar),
+          });
+          const res = await fetch("/api/me");
+          const data = await res.json();
+          setUser(data.user);
+          setModalType(null);
+        }}
+      />
+      {["logout", "deleteAccount"].includes(modalType ?? "") && (
+        <ConfirmModal
+          type={modalType as any}
+          onConfirm={() => {
+            if (modalType === "logout") handleLogout();
+            if (modalType === "deleteAccount") handleDeleteAccount();
+          }}
+          onCancel={() => setModalType(null)}
+        />
       )}
 
-      {/* ★ 左上アバター */}
-      <AvatarButton user={user} onClick={() => setMenuOpen(!menuOpen)} />
+      {/* メインスクロール領域 */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y px-4 pb-24">
+        <div className="max-w-5xl mx-auto">
+          {/* タイトルエリア：ボタンとテキストを横に並べる */}
+          <div className="flex items-center justify-center gap-4 pt-24 pb-12">
+            {/* ログイン・メニューボタン（タイトルの左に配置） */}
+            <div className="shrink-0">
+              {user ? (
+                <AvatarButton
+                  user={user}
+                  onClick={() => setMenuOpen(!menuOpen)}
+                />
+              ) : (
+                <button
+                  onClick={() => router.push("/login")}
+                  className="
+                    p-3 bg-white/90 backdrop-blur-md rounded-full shadow-lg font-bold 
+                    flex items-center justify-center w-14 h-14 transition-transform active:scale-95 
+                    border-2 border-white/50 text-blue-600
+                  "
+                >
+                  <LogIn className="w-6 h-6" />
+                </button>
+              )}
+            </div>
 
-      {/* ★ メニュー */}
+            {/* ホーム画面テキスト */}
+            <p className="text-white text-4xl sm:text-5xl font-black drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] m-0">
+              ホーム画面
+            </p>
+          </div>
+
+          {/* ゲームの島々 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-10 justify-items-center">
+            {games.map(({ key, ...game }, index) => (
+              <GameIsland key={key} {...game} delay={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* ユーザーメニュー */}
       <UserMenu
         open={menuOpen}
         user={user}
         onClose={() => setMenuOpen(false)}
         onOpenAvatar={() => {
           setModalType("avatar");
-          document.body.style.overflow = "hidden";
+          setMenuOpen(false);
         }}
-        onOpenScore={() => setModalType("menu")}
-        onOpenBoard={() => router.push("/board")}
-        onOpenLogout={() => setModalType("logout")}
-      />
-
-      {/* ★ ConfirmModal（reset / logout / deleteAccount / deletePost） */}
-      {["reset", "logout", "deleteAccount", "deletePost"].includes(
-        modalType ?? "",
-      ) && (
-        <ConfirmModal
-          type={modalType as any}
-          onConfirm={() => {
-            if (modalType === "reset") window.location.reload();
-            if (modalType === "logout") handleLogout();
-            if (modalType === "deleteAccount") handleDeleteAccount();
-            if (modalType === "deletePost") handleDeletePost();
-          }}
-          onCancel={() => setModalType(null)}
-        />
-      )}
-
-      {/* ★ AvatarModal */}
-      <AvatarModal
-        open={modalType === "avatar"}
-        user={user}
-        onSave={async (newAvatar: Avatar) => {
-          await fetch("/api/avatar", {
-            method: "POST",
-            body: JSON.stringify(newAvatar),
-          });
-
-          const res = await fetch("/api/me");
-          const data = await res.json();
-          setUser(data.user);
-
-          document.body.style.overflow = "auto";
-          setModalType(null);
+        onOpenScore={() => {
+          setModalType("menu");
+          setMenuOpen(false);
         }}
-        onClose={() => {
-          document.body.style.overflow = "auto";
-          setModalType(null);
+        onOpenBoard={() => {
+          router.push("/board");
+          setMenuOpen(false);
+        }}
+        onOpenLogout={() => {
+          setModalType("logout");
+          setMenuOpen(false);
         }}
       />
 
-      {/* ★ メイン */}
-      <main className="min-h-dvh w-full overflow-x-hidden flex items-center justify-center bg-gray-100">
-        <div className="w-full p-2 border-4 border-green-300 rounded-2xl shadow-2xl bg-white space-y-2">
-          {modalType === "menu" && (
-            <ScoreModal scores={scores} onClose={() => setModalType(null)} />
-          )}
-
-          <div className="relative w-full flex items-center px-2 py-2">
-            <div className="flex-shrink-0">
-              <UserStatusBar user={user} />
-            </div>
-
-            <h1 className="absolute left-1/2 -translate-x-1/2 text-3xl font-bold">
-              ホーム
-            </h1>
-
-            <button
-              onClick={() => {
-                router.push("/ranking");
-                setMenuOpen(false);
-              }}
-              className="ml-auto bg-green-500 text-white px-3 py-2 rounded-md font-bold hover:bg-green-600 flex-shrink-0"
-            >
-              ランキング
-            </button>
-          </div>
-
-          <SectionBox>
-            <h1 className="text-3xl font-extrabold text-center mb-2">
-              ゲーム選択
-              <hr className="border-t-2 border-gray-800 mx-auto mt-0.5" />
-              <hr className="border-t-2 border-gray-800 mx-auto mt-0.5" />
-            </h1>
-
-            <div className="flex flex-col gap-2">
-              {games.map(({ key, ...rest }) => (
-                <GameCard key={key} {...rest} />
-              ))}
-
-              {user && (
-                <button
-                  onClick={() => setModalType("deleteAccount")}
-                  className="px-3 py-2 bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-700 transition"
-                >
-                  アカウント消去
-                </button>
-              )}
-            </div>
-          </SectionBox>
-        </div>
-      </main>
-
-      <footer className="w-full text-center text-sm text-gray-500 py-6">
-        © {new Date().getFullYear()} HiNaTaKu-Px. Released under the MIT
-        License.
+      {/* フッター */}
+      <footer className="absolute bottom-4 left-0 right-0 z-10 text-center text-white/40 text-xs pointer-events-none">
+        © {new Date().getFullYear()} HiNaTaKu-Px.
       </footer>
-    </>
+    </main>
   );
 }

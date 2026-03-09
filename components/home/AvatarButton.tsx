@@ -1,5 +1,7 @@
 "use client";
 
+import { Menu } from "lucide-react";
+
 export function AvatarButton({
   user,
   onClick,
@@ -12,30 +14,26 @@ export function AvatarButton({
   return (
     <button
       onClick={onClick}
-      className="fixed mt-3 left-5 z-50 rounded-full shadow hover:opacity-80 transition"
+      className="
+        fixed mt-4 left-5 z-50 
+        w-14 h-14 
+        flex items-center justify-center 
+        bg-white/90 backdrop-blur-md 
+        border-2 border-green-500 
+        rounded-full 
+        shadow-[0_4px_0_#22c55e] 
+        hover:translate-y-[1px] hover:shadow-[0_3px_0_#22c55e]
+        active:translate-y-[4px] active:shadow-none 
+        transition-all group
+      "
     >
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: user.avatar?.bg ?? "#ccc" }}
-      >
-        {user.avatar?.mode === "image" ? (
-          <img
-            src={`/avatars/${user.avatar.image}.png`}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <svg width="40" height="40" viewBox="0 0 100 100">
-            <circle cx="50" cy="30" r="20" fill={user.avatar?.hair ?? "#000"} />
-            <rect
-              x="30"
-              y="50"
-              width="40"
-              height="40"
-              fill={user.avatar?.clothes ?? "#fff"}
-            />
-          </svg>
-        )}
+      {/* 中央のメニューアイコン */}
+      <div className="relative">
+        <Menu className="w-7 h-7 text-green-600 group-hover:scale-110 transition-transform duration-200" />
       </div>
+
+      {/* モバイルで押しやすくするための透明なタッチ領域拡大（隠し要素） */}
+      <span className="sr-only">Menu</span>
     </button>
   );
 }
