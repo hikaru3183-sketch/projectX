@@ -2,51 +2,48 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AuthInput } from "@/components/auth/AuthInput";
+import { AuthButton } from "@/components/auth/AuthButton";
+import { Popup } from "@/components/auth/Popup";
+import { AuthCard } from "@/components/auth/AuthCard";
 
-import { AuthInput } from "@//components/auth/AuthInput";
-import { AuthButton } from "@//components/auth/AuthButton";
-import { Popup } from "@//components/auth/Popup";
-import { AuthCard } from "@//components/auth/AuthCard";
+// クライアント用インスタンスをインポート
+import { authClient } from "@/lib/auth/auth-client"; 
 
-export default function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [popup, setPopup] = useState<"success" | "error" | null>(null);
   const router = useRouter();
 
-  const login = async () => {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
+  const handleLogin = async () => {
+    // authClientが直接ログイン処理を行い、クッキーも自動保存します
+    const { data, error } = await authClient.signIn.email({
+      email,
+      password,
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
+    if (error) {
+      console.error("Login Error:", error.message);
       setPopup("error");
       return;
     }
 
-    // 必要ならユーザー情報を保存
-    localStorage.setItem("user", JSON.stringify(data.user));
-
     setPopup("success");
 
+    // ログイン情報を反映させるため、少し待ってからトップへ
     setTimeout(() => {
       router.push("/");
-      router.refresh();
+      router.refresh(); 
     }, 1200);
   };
 
   return (
-    <div className="min-h-screen  flex flex-col items-center justify-center bg-green-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-green-50">
       <AuthCard title="ログイン">
         <AuthInput
           type="email"
-          placeholder="アカウント名"
+          placeholder="メールアドレス"
           value={email}
           onChange={setEmail}
         />
@@ -56,29 +53,21 @@ export default function Login() {
           value={password}
           onChange={setPassword}
         />
-        <AuthButton label="ログイン" onClick={login} />
+        <AuthButton label="ログイン" onClick={handleLogin} />
       </AuthCard>
+      
       <button
         onClick={() => router.push("/register")}
-        className=" mt-5 px-5 py-3 text-base bg-sky-500 text-white font-bold rounded-lg shadow hover:bg-sky-600 transition"
+        className="mt-5 px-5 py-3 text-base bg-sky-500 text-white font-bold rounded-lg shadow hover:bg-sky-600 transition"
       >
         アカウント作成
       </button>
+
       {popup === "success" && (
-        <Popup
-          type="success"
-          message="ログイン成功！"
-          color="green"
-          onClose={() => setPopup(null)}
-        />
+        <Popup type="success" message="ログイン成功！" color="green" onClose={() => setPopup(null)} />
       )}
       {popup === "error" && (
-        <Popup
-          type="error"
-          message="ログイン失敗…"
-          color="red"
-          onClose={() => setPopup(null)}
-        />
+        <Popup type="error" message="ログイン失敗…" color="red" onClose={() => setPopup(null)} />
       )}
     </div>
   );

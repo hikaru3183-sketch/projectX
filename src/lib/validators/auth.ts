@@ -1,11 +1,13 @@
-// lib/validators/auth.ts
 import { z } from "zod";
 
 // -----------------------------
 // Login
 // -----------------------------
 export const loginSchema = z.object({
-  email: z.string().min(1, "メールを入力してください"),
+  email: z
+    .string()
+    .min(1, "メールアドレスを入力してください")
+    .email("正しいメール形式で入力してください"),
   password: z.string().min(1, "パスワードを入力してください"),
 });
 
@@ -13,6 +15,10 @@ export const loginSchema = z.object({
 // Register
 // -----------------------------
 export const registerSchema = z.object({
-  email: z.string().min(1, "メールを入力してください"),
-  password: z.string().min(1, "パスワードを入力してください"),
+  email: z
+    .string()
+    .min(1, "メールアドレスを入力してください")
+    .email("正しいメール形式で入力してください"),
+  // ★ min(1) になったので、1文字から送信可能！
+  password: z.string().min(1, "パスワードを入力してください"), 
 });

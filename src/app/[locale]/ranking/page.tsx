@@ -1,22 +1,32 @@
-"use client";
+import { db } from "@/lib/db/db";
+import { appUsers, scores } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
 
-import { useEffect, useState } from "react";
+// 1. サーバー側でデータを取得する関数
+async function getRankings() {
+  const games = ["click", "janken", "hockey", "escape"] as const;
+  const results: Record<string, any[]> = {};
 
-export default function RankingPage() {
-  const [ranking, setRanking] = useState<any>(null);
+  for (const game of games) {
+    results[game] = await db
+      .select({
+        name: appUsers.name,
+        email: appUsers.email,
+        value: scores.value,
+      })
+      .from(scores)
+      .innerJoin(appUsers, eq(scores.userId, appUsers.id))
+      .where(eq(scores.game, game))
+      .orderBy(desc(scores.value))
+      .limit(10);
+  }
+  return results;
+}
 
-  useEffect(() => {
-    const fetchRanking = async () => {
-      const res = await fetch("/api/ranking");
-      const data = await res.json();
-      setRanking(data);
-    };
-    fetchRanking();
-  }, []);
+export default async function RankingPage() {
+  // 2. 直接DBからデータを取得 (fetchは不要)
+  const ranking = await getRankings();
 
-  if (!ranking) return <p className="text-center mt-10">読み込み中...</p>;
-
-  // ゲーム名
   const gameLabels = {
     click: "クリック",
     janken: "ジャンケン",
@@ -24,7 +34,6 @@ export default function RankingPage() {
     escape: "エスケープ",
   } as const;
 
-  // ★ 右側に表示する説明ラベル
   const valueLabels = {
     click: "コイン数",
     janken: "優勝回数",
@@ -32,9 +41,6 @@ export default function RankingPage() {
     escape: "最大スコア",
   } as const;
 
-  type GameKey = keyof typeof gameLabels;
-
-  // 🥇🥈🥉 を返す関数
   const medal = (rank: number) => {
     if (rank === 0) return "🥇";
     if (rank === 1) return "🥈";
@@ -46,9 +52,8 @@ export default function RankingPage() {
     <main className="mt-10 p-4 max-w-xl mx-auto space-y-6">
       <h1 className="text-4xl font-bold text-center">ランキング</h1>
 
-      {(Object.keys(gameLabels) as GameKey[]).map((key) => (
+      {(Object.keys(gameLabels) as (keyof typeof gameLabels)[]).map((key) => (
         <div key={key} className="p-4 border rounded-xl shadow bg-white">
-          {/* ★ タイトル左・説明ラベル右 */}
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-2xl font-bold">{gameLabels[key]}</h2>
             <span className="text-gray-600 text-sm font-semibold">
@@ -56,22 +61,27 @@ export default function RankingPage() {
             </span>
           </div>
 
-          {(!ranking[key] || ranking[key].length === 0) && (
+          {!ranking[key] || ranking[key].length === 0 ? (
             <p className="text-gray-500">まだスコアがありません</p>
+          ) : (
+            ranking[key].map((item, i) => (
+              <div
+                key={i}
+                className="flex justify-between border-b py-2 text-lg font-bold items-center"
+              >
+                <span className="w-16">
+                  {medal(i)} {i + 1}位
+                </span>
+                <span className="flex-1 text-center truncate px-2">
+                  {/* Better Authのnameがあれば表示、なければメールのアットマーク前を表示 */}
+                  {item.name || item.email?.split("@")[0] || "名無し"}
+                </span>
+                <span className="w-20 text-right text-orange-600">
+                  {item.value.toLocaleString()}
+                </span>
+              </div>
+            ))
           )}
-
-          {ranking[key]?.map((item: any, i: number) => (
-            <div
-              key={i}
-              className="flex justify-between border-b py-1 text-lg font-bold"
-            >
-              <span>
-                {medal(i)} {i + 1} 位
-              </span>
-              <span>{item.email ?? "名無し"}</span>
-              <span>{item.value}</span>
-            </div>
-          ))}
         </div>
       ))}
     </main>

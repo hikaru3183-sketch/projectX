@@ -1,83 +1,49 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+
+// ★ Better Auth のクライアントをインポート
+import { authClient } from "@/lib/auth/auth-client";
 
 import { GameIsland } from "@/components/home/GameIsland";
 import { OceanBackground } from "@/components/home/OceanBackground";
 import { ScoreModal } from "@/components/home/ScoreModal";
 import { LogoutSuccessModal } from "@/components/home/LogoutSuccessModal";
-import { DeleteAccountSuccessModal } from "@/components/home/DeleteAccountSuccessModal";
 import { AvatarButton } from "@/components/home/AvatarButton";
 import { UserMenu } from "@/components/home/UserMenu";
 import { AvatarModal } from "@/components/home/AvatarModal";
 import { ConfirmModal } from "@/components/home/ConfirmModal";
-import { ModeToggle } from "@/components/mode-toggle"; // 追加
-
-// Shadcn UI コンポーネントを必要に応じてインポート
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-
 import { Hand, Gamepad2, Target, Zap, Dice1, LogIn } from "lucide-react";
 
 export default function Home() {
   const t = useTranslations("Home");
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
+  // 1. Better Auth でログイン状態を監視
+  // session があればログイン中、null なら未ログイン、isPending は読み込み中
+  const { data: session, isPending: isAuthLoading } = authClient.useSession();
+  const user = session?.user; 
+
   const [scores, setScores] = useState<any[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutSuccess, setLogoutSuccess] = useState(false);
-  const [deleteSuccess, setDeleteSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [modalType, setModalType] = useState<
-    "reset" | "logout" | "menu" | "avatar" | "deleteAccount" | null
-  >(null);
+  const [modalType, setModalType] = useState<"menu" | "avatar" | "logout" | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadInitialData = async () => {
-      try {
-        const [userRes, scoreRes] = await Promise.all([
-          fetch("/api/me"),
-          fetch("/api/score"),
-        ]);
-        const userData = await userRes.json();
-        if (isMounted) {
-          setUser(userData.user);
-          if (scoreRes.ok) setScores(await scoreRes.json());
-        }
-      } catch (e) {
-        console.error("データ取得失敗:", e);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-    loadInitialData();
-    return () => { isMounted = false; };
-  }, []);
-
+  // 2. ログアウト処理の修正
   const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/logout", { method: "POST" });
-      if (res.ok) {
-        setUser(null);
-        setModalType(null);
-        setLogoutSuccess(true);
-        router.refresh();
-      }
-    } catch (err) { console.error("ログアウト失敗:", err); }
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      const res = await fetch("/api/delete-account", { method: "POST" });
-      if (res.ok) {
-        setUser(null);
-        setModalType(null);
-        setDeleteSuccess(true);
-      }
-    } catch (err) { console.error("削除失敗:", err); }
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setModalType(null);
+          setLogoutSuccess(true);
+          router.refresh();
+        },
+      },
+    });
   };
 
   const games = useMemo(() => [
@@ -94,48 +60,48 @@ export default function Home() {
         <OceanBackground />
       </div>
 
-      {/* 右上のコントロールエリア */}
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         <ModeToggle />
       </div>
 
-      {/* モーダル群 (変更なし) */}
+      {/* ログイン成功・失敗等のモーダル */}
       {logoutSuccess && <LogoutSuccessModal onClose={() => setLogoutSuccess(false)} />}
-      {deleteSuccess && (
-        <DeleteAccountSuccessModal onClose={() => { setDeleteSuccess(false); router.push("/"); }} />
-      )}
+      
       {modalType === "menu" && <ScoreModal scores={scores} onClose={() => setModalType(null)} />}
+      
       <AvatarModal
         open={modalType === "avatar"}
         user={user}
         onClose={() => setModalType(null)}
-        onSave={async (newAvatar: any) => {
-          await fetch("/api/avatar", { method: "POST", body: JSON.stringify(newAvatar) });
-          const res = await fetch("/api/me");
-          const data = await res.json();
-          setUser(data.user);
+        onSave={async () => {
+          // アバター更新後のリロード処理など
           setModalType(null);
+          router.refresh();
         }}
       />
-      {["logout", "deleteAccount"].includes(modalType ?? "") && (
+      
+      {modalType === "logout" && (
         <ConfirmModal
-          type={modalType as any}
-          onConfirm={() => {
-            if (modalType === "logout") handleLogout();
-            if (modalType === "deleteAccount") handleDeleteAccount();
-          }}
+          type="logout"
+          onConfirm={handleLogout}
           onCancel={() => setModalType(null)}
         />
       )}
 
-      {/* コンテンツエリア */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden touch-pan-y px-4 pb-24">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-20 pb-12">
-            <div className="relative">
-              {user ? (
+            
+            {/* ★ ログイン判定による出し分けエリア */}
+            <div className="relative min-w-[56px] min-h-[56px] flex items-center justify-center">
+              {isAuthLoading ? (
+                // 読み込み中（チラつき防止）
+                <div className="w-14 h-14 rounded-full bg-muted animate-pulse" />
+              ) : user ? (
+                // ログイン中：アバターボタンを表示
                 <AvatarButton user={user} onClick={() => setMenuOpen(!menuOpen)} />
               ) : (
+                // 未ログイン：ログインボタンを表示
                 <Button 
                   variant="secondary" 
                   size="icon" 
@@ -147,7 +113,7 @@ export default function Home() {
               )}
             </div>
 
-            <h1 className="text-foreground text-4xl sm:text-6xl font-black drop-shadow-sm m-0">
+            <h1 className="text-foreground text-4xl sm:text-6xl font-black drop-shadow-sm m-0 text-center">
               {t("title")}
             </h1>
           </div>
@@ -160,6 +126,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* ユーザーメニュー */}
       <UserMenu
         open={menuOpen}
         user={user}

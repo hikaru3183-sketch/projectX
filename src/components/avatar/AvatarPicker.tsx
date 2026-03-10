@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useGlobalStore, Avatar } from "@//store/useGlobalStore";
-import { CHARACTERS } from "@//components/avatar/avatarData";
+import { useGlobalStore, Avatar } from "@/store/useGlobalStore"; // パスを修正
+import { CHARACTERS } from "@/components/avatar/avatarData";
+import { authClient } from "@/lib/auth/auth-client"; // ★ Better Auth クライアントを追加
+import { useRouter } from "next/navigation";
 
 export function AvatarPicker({
   initial,
@@ -13,9 +15,9 @@ export function AvatarPicker({
   onSave: (a: Avatar) => void;
   onClose?: () => void;
 }) {
+  const router = useRouter();
   const setGlobalAvatar = useGlobalStore((state) => state.setAvatar);
 
-  // ★ 修正: カラー情報を削除し、mode と image だけのシンプルな初期値に
   const [avatar, setAvatar] = useState<Avatar>(
     initial ?? {
       mode: "image",
@@ -23,24 +25,45 @@ export function AvatarPicker({
     },
   );
 
+  const [isUpdating, setIsUpdating] = useState(false); // 保存中のローディング状態
   const [savedPopup, setSavedPopup] = useState(false);
 
-  // 数字のみのIDリスト
   const avatarIds = ["1", "2", "3"];
 
-  const handleSave = () => {
+// AvatarPicker.tsx 内の該当箇所
+const handleSave = async () => {
+  setIsUpdating(true);
+  try {
+    // TypeScriptの型チェックを回避しつつ、実行時には正しく 'avatar' フィールドを送信する
+    const { data, error } = await (authClient.updateUser as any)({
+      avatar: avatar,
+    });
+
+    if (error) {
+      console.error("Update Error:", error);
+      alert("保存に失敗しました。");
+      return;
+    }
+
     onSave(avatar);
     setGlobalAvatar(avatar);
+    
     setSavedPopup(true);
-  };
+    router.refresh(); 
 
+  } catch (err) {
+    console.error("Avatar update error:", err);
+  } finally {
+    setIsUpdating(false);
+  }
+}; 
   return (
-    <div className="relative space-y-4 p-4 text-black bg-white rounded-3xl border-4 border-gray-100 shadow-xl">
+    <div className="relative space-y-4 p-4 text-black bg-white rounded-3xl border-4 border-gray-100 shadow-xl max-w-sm mx-auto">
       {/* 閉じるボタン */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl font-bold p-2 transition-colors"
+          className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl font-bold p-2 transition-colors z-10"
         >
           ✕
         </button>
@@ -68,8 +91,8 @@ export function AvatarPicker({
         </div>
       )}
 
-      {/* プレビュー表示: ID.png を直接表示 */}
-      <div className="w-36 h-36 mx-auto rounded-[2rem] shadow-inner overflow-hidden flex items-center justify-center bg-gray-50 border-4 border-gray-100">
+      {/* プレビュー表示 */}
+      <div className="w-32 h-32 mx-auto rounded-[2rem] shadow-inner overflow-hidden flex items-center justify-center bg-gray-50 border-4 border-gray-100">
         <img
           src={`/avatars/${avatar.image}.png`}
           className="w-full h-full object-cover"
@@ -86,6 +109,7 @@ export function AvatarPicker({
           {avatarIds.map((id) => (
             <button
               key={id}
+              disabled={isUpdating}
               onClick={() => setAvatar({ ...avatar, image: id })}
               className={`relative border-4 rounded-2xl p-2 transition-all overflow-hidden bg-white ${
                 avatar.image === id
@@ -108,9 +132,14 @@ export function AvatarPicker({
 
       <button
         onClick={handleSave}
-        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 shadow-[0_5px_0_rgb(30,58,138)] active:shadow-none active:translate-y-1 transition-all"
+        disabled={isUpdating}
+        className={`w-full py-4 rounded-2xl font-black text-lg transition-all shadow-[0_5px_0_rgb(30,58,138)] active:shadow-none active:translate-y-1 ${
+          isUpdating 
+            ? "bg-gray-400 cursor-not-allowed" 
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        }`}
       >
-        SAVE & PLAY
+        {isUpdating ? "SAVING..." : "SAVE & PLAY"}
       </button>
     </div>
   );

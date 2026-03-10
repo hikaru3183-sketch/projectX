@@ -1,1 +1,0 @@
-ALTER TABLE "app_users" ADD COLUMN "avatar" json DEFAULT '{"hair":"#000000","clothes":"#ffffff","bg":"#cccccc"}'::json NOT NULL;

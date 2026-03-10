@@ -1,1 +1,0 @@
-ALTER TABLE "app_users" ALTER COLUMN "avatar" SET DEFAULT '{"mode":"image","image":"1"}'::json;
