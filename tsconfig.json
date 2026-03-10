@@ -18,8 +18,9 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // 追加：パス解決の基準点を明確にします
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"] // 修正：./* から ./src/* に変更
     }
   },
   "include": [
@@ -29,7 +30,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "components/sound/Sound.tx"
+    "src/components/sound/Sound.tsx", // 修正：拡張子が .tx になっていたのを .tsx に
+    "next.config.mjs",
+    "messages/**/*.json" // 追加：翻訳ファイルの型補完のため
   ],
   "exclude": ["node_modules"]
 }

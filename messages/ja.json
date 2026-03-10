@@ -1,0 +1,28 @@
+{
+  "Home": {
+    "title": "ホーム画面",
+    "footer": "HiNaTaKu-Px.",
+    "games": {
+      "click": {
+        "label": "クリック島",
+        "desc": "押して、当てて、貯めて。"
+      },
+      "janken": {
+        "label": "ジャンケン島",
+        "desc": "勝ち進んで、優勝。"
+      },
+      "hockey": {
+        "label": "ホッケー島",
+        "desc": "自分を超えろ。"
+      },
+      "escape": {
+        "label": "エスケープ島",
+        "desc": "集めて逃げろ。"
+      },
+      "casino": {
+        "label": "カジノ島",
+        "desc": "運も実力、ギャンブル。"
+      }
+    }
+  }
+}

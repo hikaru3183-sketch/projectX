@@ -1,0 +1,28 @@
+{
+  "Home": {
+    "title": "Home Screen",
+    "footer": "HiNaTaKu-Px.",
+    "games": {
+      "click": {
+        "label": "Click Island",
+        "desc": "Tap, hit, and save up."
+      },
+      "janken": {
+        "label": "Janken Island",
+        "desc": "Win through to the championship."
+      },
+      "hockey": {
+        "label": "Hockey Island",
+        "desc": "Exceed your limits."
+      },
+      "escape": {
+        "label": "Escape Island",
+        "desc": "Collect and get out."
+      },
+      "casino": {
+        "label": "Casino Island",
+        "desc": "Luck is a skill. Gamble."
+      }
+    }
+  }
+}
