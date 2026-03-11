@@ -1,9 +1,10 @@
 "use server";
 
-import { db } from "@/lib/db/db";
-import { appUsers, scores } from "@/lib/db/schema";
+import { db } from "@/db/db"; // パスを修正 (@/lib/db -> @/db)
+import { user as userTable, gameScores as scores } from "@/db/schema"; // schemaのテーブル名に合わせる
 import { eq, and } from "drizzle-orm";
-import { validateRequest } from "@/lib/auth/lucia";
+import { auth } from "@/lib/auth"; // Better Auth をインポート
+import { headers } from "next/headers";
 
 // アバターの型定義
 interface AvatarData {
@@ -16,24 +17,27 @@ export async function saveGameData(
   currentStreak: number,
   activeGame: string,
   gameBestScores: Record<string, number>,
-  // ★ 追加: アバター情報を受け取れるようにする
   avatar?: AvatarData,
 ) {
-  const { user } = await validateRequest();
-  if (!user) throw new Error("Unauthorized");
+  // ✅ Better Auth で認証チェック
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (!session?.user) throw new Error("Unauthorized");
+  const userId = session.user.id;
 
   try {
     // 1. ユーザーの所持コインとアバターを更新
     await db
-      .update(appUsers)
+      .update(userTable)
       .set({
         coins,
-        // アバターデータがあればセットする
         ...(avatar && { avatar }),
       })
-      .where(eq(appUsers.id, user.id));
+      .where(eq(userTable.id, userId));
 
-    // 2. 全ゲームのハイスコアを更新 (既存のループ処理)
+    // 2. 全ゲームのハイスコアを更新
     const gameEntries = Object.entries(gameBestScores);
 
     for (const [gameName, bestValue] of gameEntries) {
@@ -42,21 +46,22 @@ export async function saveGameData(
       const results = await db
         .select()
         .from(scores)
-        .where(and(eq(scores.userId, user.id), eq(scores.game, gameName)))
+        .where(and(eq(scores.userId, userId), eq(scores.gameType, gameName))) // game -> gameType (schemaに合わせる)
         .limit(1);
 
       const existingScore = results[0];
 
       if (!existingScore) {
         await db.insert(scores).values({
-          userId: user.id,
-          game: gameName,
-          value: bestValue,
+          id: crypto.randomUUID(), // ID生成が必要な場合
+          userId,
+          gameType: gameName,
+          score: bestValue,
         });
-      } else if (bestValue > (existingScore.value ?? 0)) {
+      } else if (bestValue > (existingScore.score ?? 0)) {
         await db
           .update(scores)
-          .set({ value: bestValue })
+          .set({ score: bestValue })
           .where(eq(scores.id, existingScore.id));
       }
     }
@@ -69,27 +74,33 @@ export async function saveGameData(
 }
 
 export async function getGameStats() {
-  const { user } = await validateRequest();
-  if (!user) throw new Error("Unauthorized");
+  // ✅ Better Auth で認証チェック
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user) throw new Error("Unauthorized");
+  const userId = session.user.id;
 
   try {
-    const userData = await db.query.appUsers.findFirst({
-      where: eq(appUsers.id, user.id),
+    // ユーザーデータを取得
+    const userData = await db.query.user.findFirst({
+      where: eq(userTable.id, userId),
     });
 
+    // スコアデータを取得
     const userScores = await db
       .select({
-        game: scores.game,
-        value: scores.value,
+        game: scores.gameType,
+        value: scores.score,
       })
       .from(scores)
-      .where(eq(scores.userId, user.id));
+      .where(eq(scores.userId, userId));
 
-    // ★ 修正: 保存されている avatar オブジェクトも返す
     return {
       ok: true,
       coins: userData?.coins ?? 0,
-      avatar: userData?.avatar, // アバター情報
+      avatar: userData?.avatar, 
       scores: userScores,
     };
   } catch (error) {
