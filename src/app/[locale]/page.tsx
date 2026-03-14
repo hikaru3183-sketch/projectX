@@ -132,7 +132,7 @@ export default function Home() {
       <Button
         variant="ghost"
         className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary"
-        onClick={() => router.push(`/${locale}/dashboard`)}
+        onClick={() => router.push(`/${locale}/settings`)}
       >
         <div className="scale-100">
           <LayoutDashboard className="w-4 h-4" />
