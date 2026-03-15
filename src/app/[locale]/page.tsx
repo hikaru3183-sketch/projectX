@@ -126,8 +126,7 @@ export default function Home() {
       </div>
     )}
 
-    {/* 2. ボタンセクション (右側) */}
-    {/* border-t を削除し、flex-row の中の一部として配置 */}
+    {/* 2. ボタンセクション (右側) - 常に表示 */}
     <div className="flex items-center gap-1 px-2 justify-center">
       <Button
         variant="ghost"
