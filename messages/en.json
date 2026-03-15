@@ -17,11 +17,31 @@
       "settings": "User Settings",
       "displayName": "Display Name",
       "save": "Save Changes",
-      "updating": "Updating..."
+      "updating": "Updating...",
+      "guestBoardOnly": "Read-only access",
+      "guestScoreLocked": "Locked for guests",
+      "guestAvatarFixed": "Guest avatar is fixed",
+      "guestLocked": "Locked",
+      "guestNotice": "Guest profile settings are managed by the system administrator.",
+      "logoutTitle": "Confirm Logout",
+      "logoutMessage": "Are you sure you want to logout?",
+      "logoutGuestMessage": "Guest data will be reset. Are you sure?",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "logout": "Logout",
+      "scoreTitle": "Your Score",
+      "totalCoins": "Total Coins",
+      "close": "Close",
+      "logoutSuccess": "Logged out successfully",
+      "guestResetSuccess": "Data has been reset",
+      "errorOccurred": "An error occurred"
     },
     "games": {
       "click": { "label": "Click Island", "desc": "Tap, hit, and save up." },
-      "janken": { "label": "Janken Island", "desc": "Win through to the championship." },
+      "janken": {
+        "label": "Janken Island",
+        "desc": "Win through to the championship."
+      },
       "hockey": { "label": "Hockey Island", "desc": "Go Beyond Your Limits." },
       "escape": { "label": "Escape Island", "desc": "Collect and get out." },
       "casino": { "label": "Casino Island", "desc": "Luck is a skill. Gamble." }

@@ -1,15 +1,19 @@
-// app/[locale]/game/click/page.tsx
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import ClickGamePage from "./ClickGameClientPage"; // 下記のクライアントコンポーネントを読み込む
+import ClickGameClientPage from "./ClickGameClientPage";
+import { getClickerItemsAction } from "./logic/actions";
 
 export default async function Page() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  // ログインしていればDBの値、していなければ0
+  const session = await auth.api.getSession({ headers: await headers() });
+  
+  // コインとアイテムの両方をサーバーサイドで取得
   const initialCoins = session?.user.coins ?? 0;
+  const initialStock = await getClickerItemsAction();
 
-  return <ClickGamePage initialCoins={initialCoins} />;
+  return (
+    <ClickGameClientPage 
+      initialCoins={initialCoins} 
+      initialStock={initialStock} 
+    />
+  );
 }

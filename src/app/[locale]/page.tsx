@@ -4,14 +4,9 @@ import React, { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
 
 import { GameIsland } from "@/components/home/GameIsland";
 import { OceanBackground } from "@/components/home/OceanBackground";
-import { ScoreModal } from "@/components/home/ScoreModal";
-import { AvatarModal } from "@/components/home/AvatarModal";
-import { ConfirmModal } from "@/components/home/ConfirmModal";
-import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Hand,
@@ -20,10 +15,6 @@ import {
   Zap,
   Dice1,
   LayoutDashboard,
-  Trophy,
-  UserCircle,
-  LogOut,
-  MessageSquare,
 } from "lucide-react";
 
 export default function Home() {
@@ -31,30 +22,14 @@ export default function Home() {
   const router = useRouter();
   const params = useParams();
   const locale = params.locale as string;
-  const mode = ModeToggle() as any;
 
   const { data: session, isPending: isAuthLoading } = authClient.useSession();
   const user = session?.user;
 
-  const [scores, setScores] = useState<any[]>([]);
   const [modalType, setModalType] = useState<
     "menu" | "avatar" | "logout" | null
   >(null);
 
-  const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          setModalType(null);
-          toast.success("ログアウトしました。また遊んでね！");
-          router.push(`/${locale}/login`);
-        },
-        onError: (ctx) => {
-          toast.error("エラーが発生しました: " + ctx.error.message);
-        },
-      },
-    });
-  };
 
   const games = useMemo(
     () => [
@@ -107,34 +82,39 @@ export default function Home() {
       <div className="absolute inset-0 -z-10">
         <OceanBackground />
       </div>
-      {/* --- 下部のナビゲーションメニュー --- */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
-  <nav className="flex flex-row items-center bg-background/80 backdrop-blur-md rounded-2xl border shadow-2xl transition-all overflow-hidden p-1">
+
+{/* --- 下部のナビゲーションメニュー --- */}
+<div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
+  <nav className="flex flex-row items-center bg-background/80 backdrop-blur-md rounded-2xl border shadow-2xl transition-all overflow-hidden p-1.5">
     
     {/* 1. ユーザー情報セクション (左側) */}
-    {!isAuthLoading && user && (
-      <div className="flex items-center justify-center py-2 px-4 select-none border-r border-foreground/5">
-        <div className="flex items-center font-mono text-[10px] tracking-[0.2em]">
-          <span className="text-foreground/20 font-black">
-            ACCOUNT
-          </span>
-          <span className="mx-3 text-foreground/10">/</span>
-          <span className="text-foreground/70 font-bold uppercase">
-            {user.name}
-          </span>
-        </div>
-      </div>
-    )}
+
+{!isAuthLoading && user && (
+  <div className="flex flex-col items-center justify-center py-2 px-6 select-none border-r border-foreground/5 min-w-[130px]">
+    {/* 上：ラベル (Account) */}
+    <span className="text-foreground/20 font-black font-mono text-[8px] tracking-[0.2em] leading-none uppercase mb-2">
+      Account
+    </span>
+    
+    {/* 中：点線ライン (my-2 でしっかり間隔をあける) */}
+    <div className="w-full border-t border-dashed border-foreground/10 " />
+    
+    {/* 下：ユーザー名 */}
+    <span className="text-foreground/70 font-black uppercase text-[11px] tracking-widest leading-none truncate max-w-[110px] text-center mt-1">
+      {user.name}
+    </span>
+  </div>
+)}
+
 
     {/* 2. ボタンセクション (右側) */}
-    {/* border-t を削除し、flex-row の中の一部として配置 */}
-    <div className="flex items-center gap-1 px-2 justify-center">
+    <div className="flex items-center gap-1 pl-2 pr-1 justify-center">
       <Button
         variant="ghost"
-        className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary"
+        className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary group"
         onClick={() => router.push(`/${locale}/dashboard`)}
       >
-        <div className="scale-100">
+        <div className="scale-100 group-hover:scale-110 transition-transform">
           <LayoutDashboard className="w-4 h-4" />
         </div>
         <span className="text-[10px] font-bold tracking-tight">設定</span>
@@ -143,27 +123,6 @@ export default function Home() {
 
   </nav>
 </div>
-
-      {/* モーダル群 */}
-      {modalType === "menu" && (
-        <ScoreModal scores={scores} onClose={() => setModalType(null)} />
-      )}
-      <AvatarModal
-        open={modalType === "avatar"}
-        user={user}
-        onClose={() => setModalType(null)}
-        onSave={async () => {
-          setModalType(null);
-          router.refresh();
-        }}
-      />
-      {modalType === "logout" && (
-        <ConfirmModal
-          type="logout"
-          onConfirm={handleLogout}
-          onCancel={() => setModalType(null)}
-        />
-      )}
       {/* メインコンテンツ */}
       <div className="flex-1 overflow-y-auto px-4 pb-40 pt-10">
         {" "}

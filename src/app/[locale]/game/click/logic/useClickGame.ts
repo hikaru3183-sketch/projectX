@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useMemo, useTransition } from "react";
-import { saveClickerItemsAction } from "./actions"; // パスを調整してください
+// saveClickerItemsAction のインポートは不要になるため削除してもOKですが、
+// ロジックを壊さないよう最小限の修正に留めます。
+import { saveClickerItemsAction } from "./actions";
 
 export function useClickGame(initialCoins: number = 0, initialStock: Record<string, number> = {}) {
   const [coins, setCoins] = useState<number>(initialCoins);
@@ -22,11 +24,15 @@ export function useClickGame(initialCoins: number = 0, initialStock: Record<stri
 
   const effectIdRef = useRef(0);
 
-  // DB保存用トリガー
+  /**
+   * DB保存用トリガー 
+   * ガチャごとの保存を止めるため、この関数は内部で使用しないように修正します。
+   */
   const triggerSave = (nextStock: Record<string, number>) => {
-    startTransition(async () => {
-      await saveClickerItemsAction(nextStock);
-    });
+    // ページ側で一括保存するため、ここでは何もしないようにします。
+    // startTransition(async () => {
+    //   await saveClickerItemsAction(nextStock);
+    // });
   };
 
   const handleClick = () => {
@@ -76,8 +82,7 @@ export function useClickGame(initialCoins: number = 0, initialStock: Record<stri
     setStockItems(newStock);
     setCoins(coins - cost);
     
-    // アイテム獲得時に保存
-    triggerSave(newStock);
+    // ★ 修正：triggerSave(newStock) を削除 (自動保存を停止)
 
     const ORDER = ["💡ノーマル", "✨レア", "🎇ウルトラ", "🎆レジェンド"];
     const resultCount: Record<string, number> = {};
@@ -107,8 +112,7 @@ export function useClickGame(initialCoins: number = 0, initialStock: Record<stri
     setStockItems(newStock);
     setCoins(coins + value);
     
-    // アイテム消費時に保存
-    triggerSave(newStock);
+    // ★ 修正：triggerSave(newStock) を削除 (自動保存を停止)
     showMessage(`${itemName} を使用して +${value} コイン獲得！`);
   };
 
@@ -121,8 +125,7 @@ export function useClickGame(initialCoins: number = 0, initialStock: Record<stri
     setStockItems(nextStock);
     setCoins(coins + total);
     
-    // アイテム一括消費時に保存
-    triggerSave(nextStock);
+    // ★ 修正：triggerSave(nextStock) を削除 (自動保存を停止)
     showMessage(`全アイテムを使用して +${total} コイン獲得！`);
   };
 
