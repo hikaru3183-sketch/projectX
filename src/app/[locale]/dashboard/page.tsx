@@ -15,9 +15,12 @@ import {
   Sun,
   Moon,
   Languages,
-  Lock, // ロックアイコンを追加
+  Lock,
+  Home,
 } from "lucide-react";
 import { AvatarModal } from "@/components/home/AvatarModal";
+import { OceanBackground } from "@/components/home/OceanBackground";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   const { data: session, isPending } = useSession();
@@ -54,46 +57,90 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 text-foreground transition-colors duration-500">
-      <div className="max-w-4xl mx-auto">
-        <header className="flex justify-between items-end mb-12 px-2">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-mono tracking-[0.2em] text-foreground/40 uppercase">
-                {t("systemActive")}
-              </span>
-            </div>
-            <h1 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
-              {t("welcome")}{session.user.name}
-              {isGuest && <span className="text-[10px] bg-foreground/10 px-2 py-0.5 rounded text-foreground/40 font-mono">GUEST_MODE</span>}
-            </h1>
-          </div>
+    <main className="fixed inset-0 w-full h-dvh bg-background overflow-hidden flex flex-col transition-colors duration-300">
+      {/* Ocean Background */}
+      <div className="absolute inset-0 -z-10">
+        <OceanBackground />
+      </div>
 
-          <div className="flex items-center gap-2">
+      {/* Bottom Navigation - Same as Home */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
+        <nav className="flex flex-row items-center bg-background/80 backdrop-blur-md rounded-2xl border shadow-2xl transition-all overflow-hidden p-1">
+          {/* User Info Section */}
+          {session?.user && (
+            <div className="flex items-center justify-center py-2 px-4 select-none border-r border-foreground/5">
+              <div className="flex items-center font-mono text-[10px] tracking-[0.2em]">
+                <span className="text-foreground/20 font-black">ACCOUNT</span>
+                <span className="mx-3 text-foreground/10">/</span>
+                <span className="text-foreground/70 font-bold uppercase">
+                  {session.user.name}
+                </span>
+                {isGuest && (
+                  <span className="ml-2 text-[8px] bg-foreground/10 px-1.5 py-0.5 rounded text-foreground/40 font-mono">
+                    GUEST
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Button Section */}
+          <div className="flex items-center gap-1 px-2 justify-center">
+            <Button
+              variant="ghost"
+              className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary"
+              onClick={() => router.push(`/${currentLocale}`)}
+            >
+              <Home className="w-4 h-4" />
+              <span className="text-[10px] font-bold tracking-tight">ホーム</span>
+            </Button>
             {mounted && (
               <>
-                <button onClick={toggleLanguage} className="flex items-center gap-1.5 p-2.5 rounded-xl bg-foreground/[0.03] border border-foreground/5 text-foreground/40 hover:text-foreground transition-all">
+                <Button
+                  variant="ghost"
+                  className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary"
+                  onClick={toggleLanguage}
+                >
                   <Languages className="w-4 h-4" />
-                  <span className="text-[10px] font-bold font-mono uppercase">{currentLocale === "ja" ? "EN" : "JA"}</span>
-                </button>
-                <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="p-2.5 rounded-xl bg-foreground/[0.03] border border-foreground/5 text-foreground/40 hover:text-foreground transition-all">
+                  <span className="text-[10px] font-bold tracking-tight">
+                    {currentLocale === "ja" ? "EN" : "JA"}
+                  </span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-primary/5 hover:text-primary"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
                   {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </button>
+                  <span className="text-[10px] font-bold tracking-tight">テーマ</span>
+                </Button>
               </>
             )}
-            <button onClick={() => signOut()} className="group flex items-center gap-2 px-4 py-2 text-destructive/60 hover:text-destructive transition-colors text-xs font-bold uppercase tracking-widest">
+            <Button
+              variant="ghost"
+              className="flex flex-col gap-1 h-12 w-20 sm:w-24 rounded-xl transition-all hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => signOut()}
+            >
               <LogOut className="w-4 h-4" />
-              <span>{t("exit")}</span>
-            </button>
+              <span className="text-[10px] font-bold tracking-tight">ログアウト</span>
+            </Button>
           </div>
-        </header>
+        </nav>
+      </div>
 
-        <main className="space-y-8">
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto px-4 pb-40 pt-10">
+        <div className="max-w-4xl mx-auto">
+          {/* Title */}
+          <h1 className="text-foreground text-4xl sm:text-6xl font-black drop-shadow-sm mb-12 text-center uppercase tracking-tighter">
+            {t("welcome")}{session.user.name}
+          </h1>
+
+          <div className="space-y-8">
           {/* Resume Game */}
           <section>
             <button onClick={() => router.push(`/${currentLocale}`)} className="group relative w-full overflow-hidden rounded-2xl bg-foreground p-[1px] transition-all hover:scale-[1.01] active:scale-[0.99]">
-              <div className="relative flex items-center justify-between bg-background px-8 py-6 rounded-[15px] group-hover:bg-foreground/[0.03] transition-colors text-foreground">
+              <div className="relative flex items-center justify-between bg-background/90 backdrop-blur-md px-8 py-6 rounded-[15px] group-hover:bg-background/95 transition-colors text-foreground">
                 <div className="flex items-center gap-6">
                   <div className="relative flex items-center justify-center">
                     <div className="absolute inset-0 bg-emerald-500 blur-md opacity-20 group-hover:opacity-40 transition-opacity" />
@@ -116,7 +163,7 @@ export default function DashboardPage() {
             {/* BOARD: ゲスト時は警告付き */}
             <div 
               onClick={() => router.push(`/${currentLocale}/board`)} 
-              className="group cursor-pointer p-6 rounded-2xl border border-foreground/5 bg-foreground/[0.02] hover:border-blue-500/20 transition-all"
+              className="group cursor-pointer p-6 rounded-2xl border border-foreground/10 bg-background/80 backdrop-blur-md hover:border-blue-500/30 hover:bg-background/90 transition-all"
             >
               <div className="flex justify-between items-center mb-6 text-blue-500">
                 <MessageSquare className="w-5 h-5" />
@@ -126,7 +173,7 @@ export default function DashboardPage() {
               <p className="text-[11px] text-foreground/40">{isGuest ? "ReadOnly: 閲覧のみ可能です" : t("boardSub")}</p>
             </div>
 
-            <div onClick={() => setModalType("menu")} className="group cursor-pointer p-6 rounded-2xl border border-foreground/5 bg-foreground/[0.02] hover:border-yellow-500/20 transition-all">
+            <div onClick={() => setModalType("menu")} className="group cursor-pointer p-6 rounded-2xl border border-foreground/10 bg-background/80 backdrop-blur-md hover:border-yellow-500/30 hover:bg-background/90 transition-all">
               <Trophy className="w-5 h-5 mb-6 text-yellow-500" />
               <h3 className="text-sm font-black uppercase">{t("score")}</h3>
               <p className="text-[11px] text-foreground/40">{t("scoreSub")}</p>
@@ -135,7 +182,7 @@ export default function DashboardPage() {
             {/* AVATAR: ゲスト時はクリック無効化 */}
             <div 
               onClick={() => !isGuest && setModalType("avatar")} 
-              className={`group p-6 rounded-2xl border border-foreground/5 bg-foreground/[0.02] transition-all ${isGuest ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-emerald-500/20"}`}
+              className={`group p-6 rounded-2xl border border-foreground/10 bg-background/80 backdrop-blur-md transition-all ${isGuest ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-emerald-500/30 hover:bg-background/90"}`}
             >
               <div className="flex justify-between items-center mb-6 text-emerald-500">
                 <UserCircle className="w-5 h-5" />
@@ -147,7 +194,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Settings: ゲスト時は入力をロック */}
-          <section className="bg-foreground/[0.01] p-8 rounded-3xl border border-foreground/5">
+          <section className="bg-background/80 backdrop-blur-md p-8 rounded-3xl border border-foreground/10">
             <h2 className="text-xs font-black tracking-[0.3em] text-foreground/30 uppercase mb-6">{t("settings")}</h2>
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 w-full space-y-2">
@@ -185,7 +232,7 @@ export default function DashboardPage() {
               </p>
             )}
           </section>
-        </main>
+        </div>
 
         <AvatarModal
           open={modalType === "avatar"}
@@ -194,6 +241,12 @@ export default function DashboardPage() {
           onClose={() => setModalType(null)}
         />
       </div>
-    </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-2 left-0 right-0 z-10 text-center text-muted-foreground/50 text-[10px] pointer-events-none">
+        © {new Date().getFullYear()} Project X
+      </footer>
+    </main>
   );
 }
